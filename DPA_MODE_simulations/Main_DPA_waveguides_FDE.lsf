@@ -1,0 +1,153 @@
+### Diego Arteaga Palomo - KIT - 2768902
+
+### PROBLEM 1.1 MODE FIELDS OF SILICON PHOTONIC WAVEGUIDES ###
+    #Geometry sweep and effective index calculation
+    #Fundamental TE and TM modes
+
+clear;
+switchtolayout;
+dataloc_main ="./data/";  #Folder to save results and data
+dataloc=dataloc_main+"convergence_sweeps/"; #Location to save data
+
+
+## INITIAL VARIABLES ##
+    #Data in micrometers
+
+#Define indices
+WG_n = "Si (Silicon) - Palik Copy 1";
+Clad_n = "SiO2 (Glass) - Palik Copy 1";
+
+
+#Define analysis conditions
+wavelengths = 1.310; #wavelength in micrometers
+n_modes = 10; #Number of modes to calculate
+n_near = 2.3; #Approximated effective index
+
+
+#Initial mesh specifications
+    #I use high values to ensure a mode is always found
+FDE_xspan = 2;
+FDE_yspan = 2;
+FDE_xres = 0.005; #micrometers
+FDE_yres = 0.005; #micrometers
+Boundary_Conditions=2;
+
+
+####################################################################
+
+## GEOMETRY WIDTHS SWEEP ##
+
+## Run convergence test for smallest geometry
+w_WG = 0.36;  
+h_WG = 0.22;
+
+switchtolayout;
+DefineGeometry;
+DefineMaterials;
+MeshSetup;
+
+?"Starting Convergence test for smallest geometry:";
+
+#We make a sweep of the different mesh variables,
+    #After each sweep, a value is chosen by viewing the data
+    #The ConvergenceTest is commented so to skip the sweeps if you want to go straight into the Geometry Analysis (next)
+
+#Sweep FDE xres
+variable="xres";
+xres_initial = 0.004; xres_final = 0.02; xres_step = 0.002;
+vars=linspace(xres_initial,xres_final,round((xres_final-xres_initial)/xres_step)+1);
+#ConvergenceTest;
+FDE_xres=0.01; #Value chosen after sweep evaluation
+#Sweep FDE yres
+variable="yres";
+yres_initial = 0.004; yres_final = 0.02; yres_step = 0.002; 
+vars=linspace(yres_initial,yres_final,round((yres_final-yres_initial)/yres_step)+1);
+#ConvergenceTest;
+FDE_yres=0.006; #Value chosen after sweep evaluation
+#Sweep FDE xspan
+variable="xspan";
+xspan_initial = 1; xspan_final = 2.5; xspan_step = 0.1;
+vars=linspace(xspan_initial,xspan_final,round((xspan_final-xspan_initial)/xspan_step)+1);
+#ConvergenceTest;
+FDE_xspan=1.4; #Value chosen after sweep evaluation
+#Sweep FDE yspan
+variable="yspan";
+yspan_initial = 0.5; yspan_final = 2; yspan_step = 0.1;
+vars=linspace(yspan_initial,yspan_final,round((yspan_final-yspan_initial)/yspan_step)+1);
+#ConvergenceTest;
+FDE_yspan=1.2; #Value chosen after sweep evaluation
+
+#Initial mesh specifications
+    #I use high values to ensure a mode is always found
+FDE_xspan = 1.4;
+FDE_yspan = 1.2;
+FDE_xres = 0.01;
+FDE_yres = 0.006;
+
+
+## Run convergence test for biggest geometry
+w_WG = 0.42;  # I choose 0.3 since 0.2 does not supported any modes (no convergence, the convergence test does not work)
+h_WG = 0.22;
+
+DefineGeometry;
+DefineMaterials;
+MeshSetup;
+
+?"Starting Convergence test for biggest geometry:";
+
+#We make a sweep of the different mesh variables,
+    #After each sweep, a value is chosen by viewing the data
+    #The ConvergenceTest is commented so to skip the sweeps if you want to go straight into the Geometry Analysis (next)
+
+#Initial mesh values
+FDE_xspan = 2;
+FDE_yspan = 2;
+
+#Sweep FDE xspan
+variable="xspan";
+xspan_initial = 1.3; xspan_final = 2.5; xspan_step = 0.1;
+vars=linspace(xspan_initial,xspan_final,round((xspan_final-xspan_initial)/xspan_step)+1);
+#ConvergenceTest;
+FDE_xspan=1.4; #Value chosen after sweep evaluation
+#Sweep FDE yspan
+variable="yspan";
+yspan_initial = 1.1; yspan_final = 2.5; yspan_step = 0.1;
+vars=linspace(yspan_initial,yspan_final,round((yspan_final-yspan_initial)/yspan_step)+1);
+#ConvergenceTest;
+FDE_yspan=1.4; #Value chosen after sweep evaluation
+
+
+## Run geometry analysis
+
+#Optimized values for mesh
+    #They are the highest values between the optimized values for the smallest and biggest geometries
+FDE_xspan=2.5;
+FDE_yspan=2.5;
+FDE_xres=0.006;
+FDE_yres=0.006;
+Boundary_Conditions=1;
+
+switchtolayout;
+DefineGeometry;
+DefineMaterials;
+MeshSetup;
+
+StepsGeo = 11; #Number of different geometries
+w_ini = 0.32; w_fin = 0.42; #Range of geometries in micrometers
+h_ini = 0.22; h_fin =0.22; #Range of heights in micrometers
+w_WGs = linspace(w_ini,w_fin,StepsGeo);
+
+dataloc=dataloc_main+"width/";
+GeometryAnalysis;
+
+?"Geometry Sweep finished";
+#Save data
+write(dataloc+"neff_TE.txt","New run");
+write(dataloc+"neff_TM.txt","New run");
+write(dataloc+"neff_Geow.txt","New run");
+write(dataloc+"nmodes_geo.txt","New run");
+format long;
+write(dataloc+"neff_TE.txt",num2str(real(neff_TE)));
+write(dataloc+"neff_TM.txt",num2str(real(neff_TM)));
+write(dataloc+"neff_Geow.txt",num2str(w_WGs));
+write(dataloc+"nmodes_geo.txt",num2str(nmodes_geo));

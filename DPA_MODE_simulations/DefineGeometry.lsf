@@ -1,0 +1,11 @@
+### Diego Arteaga Palomo - KIT - 2768902
+
+#SET GEOMETRIES ACCORDING TO SPECIFICATIONS
+
+#WAVEGUIDE
+select("Waveguide");
+set("x",0);
+set("y",0);
+set("z",0);
+set("x span",w_WG*1e-6);
+set("y span",h_WG*1e-6);

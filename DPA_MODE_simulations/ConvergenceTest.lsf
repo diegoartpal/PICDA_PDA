@@ -1,0 +1,125 @@
+### Diego Arteaga Palomo - KIT - 2768902
+
+#See how many values will be in the sweep
+variables_size_n=size(vars);
+variables_size=variables_size_n(1);
+
+#Create matrices to store neffs
+neff_TE = matrix(variables_size);
+neff_TM = matrix(variables_size);
+
+#Create geometry
+switchtolayout;
+DefineGeometry;
+DefineMaterials;
+
+
+#Show which variables is being swept
+if(variable=="xspan"){
+    ?"FDE xspan testing... ";
+} else if(variable=="yspan"){
+    ?"FDE yspan testing...";
+} else if(variable=="xres"){
+    ?"FDE xres testing...";
+} else if(variable=="yres"){
+    ?"FDE yres testing...";
+}
+
+#Sweep mesh variables
+for(var_i=1:variables_size){
+
+    if(variable=="xspan"){
+        FDE_xspan=vars(var_i);
+        ?"FDE xspan: "+num2str(FDE_xspan);
+    } else if(variable=="yspan"){
+        FDE_yspan=vars(var_i);
+        ?"FDE yspan: "+num2str(FDE_yspan);
+    } else if(variable=="xres"){
+        FDE_xres=vars(var_i);
+        ?"FDE xres: "+num2str(FDE_xres);
+    } else if(variable=="yres"){
+        FDE_yres=vars(var_i);
+        ?"FDE yres: "+num2str(FDE_yres);
+    }
+
+    switchtolayout;
+    MeshSetup;
+    
+    #Setup analysis
+    lambda = wavelengths;
+    setanalysis("wavelength",lambda*1e-6);
+    setanalysis("number of trial modes",n_modes);
+    setanalysis("use max index",0);
+    setanalysis("search", "near n");
+    setanalysis("n",n_near);
+
+    #Run analysis
+    nmodes = findmodes;
+
+    #Identify quasi-TE and quasi-TM modes
+       #We look at the polarization fractions
+       #Above 0.5 to determine if its could be the quasi TE modes
+       #Below 0.5 to determine if it could be the quasi TM modes
+       #We choose the one with the highest neff to be the fundamental one
+    
+    if(nmodes!=0){
+        TE_fraction=matrix(nmodes);
+        neff_temporary=matrix(nmodes);
+
+        for (q=1:nmodes){
+            TE_frac=getdata("mode"+num2str(q),"TE polarization fraction");
+            TE_fraction(q)=TE_frac;
+            neff_t=getdata("mode"+num2str(q),"neff");
+            neff_temporary(q)=neff_t;
+
+        }
+        
+        Mode_TEs=find(TE_fraction > 0.6);
+        #In case we cannot find the mode
+        if (Mode_TEs == 0){
+            ?"TE mode not found";
+            neff_TE(var_i)=0;
+        }
+        else {
+            Mode_TE1=find(TE_fraction < 0.5);
+            neff_temporary1=neff_temporary;
+            neff_temporary1(Mode_TE1)=0;
+            Mode_TE=find(real(neff_temporary1)==max(real(neff_temporary1)));
+            Mode_name="mode"+num2str(Mode_TE);
+            neff_TE(var_i) = getdata(Mode_name,"neff");
+        }
+
+        Mode_TMs=find(TE_fraction < 0.4);
+        if (Mode_TMs == 0){
+            ?"TM mode not found";
+            neff_TM(var_i)=0;
+        }
+        else {
+            Mode_TM1=find(TE_fraction > 0.5);
+            neff_temporary1=neff_temporary;
+            neff_temporary1(Mode_TM1)=0;
+            Mode_TM=find(real(neff_temporary1)==max(real(neff_temporary1)));
+            Mode=Mode_TM;
+            Mode_name="mode"+num2str(Mode_TM);
+            neff_TM(var_i) = getdata(Mode_name,"neff");
+        }
+    } else{
+        ?"No modes found";
+        neff_TE(var_i)=0;
+        neff_TM(var_i)=0;
+    }
+
+}
+
+?"Sweep finished for "+variable;
+
+#Save data
+write(dataloc+"neff_TE_sweep_"+variable+".txt","New run");
+write(dataloc+"neff_TM_sweep_"+variable+".txt","New run");
+write(dataloc+variable+".txt","New run");
+format long;
+write(dataloc+"neff_TE_sweep_"+variable+".txt",num2str(real(neff_TE)));
+write(dataloc+"neff_TM_sweep_"+variable+".txt",num2str(real(neff_TM)));
+write(dataloc+variable+".txt",num2str(vars));
+
+

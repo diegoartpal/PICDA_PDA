@@ -1,0 +1,24 @@
+### Diego Arteaga Palomo - KIT - 2768902
+
+#FDE Settings
+select("FDE");
+set("background material",Clad_n);
+set("solver type","2D Z normal");
+set("x",0);
+set("y",0);
+set("z",0);
+set("x span",FDE_xspan*1e-6);
+set("y span",FDE_yspan*1e-6);
+
+
+set("define x mesh by",1);
+set("define y mesh by",1);
+set("dx",FDE_xres*1e-6);
+set("dy",FDE_yres*1e-6);
+#I set is this way so you the resolution also changes with size
+    #Its not the same having 10 cells in 1um that 10 cells in 5um
+
+set("x min bc",Boundary_Conditions);
+set("y min bc",Boundary_Conditions);
+set("x max bc",Boundary_Conditions);
+set("y max bc",Boundary_Conditions);
