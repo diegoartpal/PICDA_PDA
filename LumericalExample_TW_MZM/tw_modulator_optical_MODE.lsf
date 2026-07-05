@@ -1,0 +1,42 @@
+switchtolayout;
+setanalysis('wavelength',1.55e-6);
+setanalysis('number of trial modes',10);
+setanalysis('search','near n');
+setanalysis('use max index',true);
+setanalysis('calculate group index',true);
+
+#Import charge density into np object in order to be able to calculate modification to refractive index.
+select("np");
+importdataset("tw_modulator_charge.mat");
+
+V = linspace(-0.5,4,10);
+neff = matrix(length(V));
+ng = matrix(length(V));
+loss = matrix(length(V));
+
+for(i=1; i<=10; i=i+1){
+    setnamed('np','V_cathode_index',i);
+    findmodes;
+    neff(i) = getdata('mode1','neff');
+    ng(i) = getdata('mode1','ng');
+    loss(i) = getdata('mode1','loss');
+    switchtolayout;
+}
+dneff = neff - neff(2); # relative change in index wrt. zero bias
+
+L = 4500e-6; # set the length of the modulator arm to plot phase shift
+la0 = getnamed("MODE","wavelength"); # central wavelength
+rel_phase = 2*pi*real(dneff)/la0*L; # phase change
+
+#Visualize some quantities of interest
+plot(V,real(neff),"Voltage (V)","effective index");
+plot(V,real(ng),"Voltage (V)","group index");
+plot(V,rel_phase,"Voltage (V)","Phase shift wrt. zero bias (rad.)");
+plot(V,loss/100,"Voltage (V)","loss (dB/cm)");
+
+# Save to files for import to INTERCONNECT
+neff = [V,real(neff),imag(neff)];
+dneff = [V,real(dneff),imag(dneff)];
+loss = [V,loss];
+ng = [V,real(ng),imag(ng)];
+matlabsave("tw_modulator_optical_data",neff,dneff,loss,ng);

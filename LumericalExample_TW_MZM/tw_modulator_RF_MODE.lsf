@@ -1,0 +1,38 @@
+switchtolayout;
+setanalysis('number of trial modes',10);
+setanalysis('search','near n');
+setanalysis('use max index',false);
+setanalysis('N',4);
+setanalysis('calculate group index',true);
+
+# Set slab resistance and pn junction capacitance at zero bias
+
+# Ohm for 1 um length in y direction
+Rslab_total = str2num(read('tw_modulator_Rslab_tot.dat'))*1e6;  
+setnamed('n','r',Rslab_total*0.5); 
+setnamed('p','r',Rslab_total*0.5);
+#F for 1 um length in y direction
+setnamed('junction','c',0.2098e-15); 
+
+f = linspace(10e9,100e9,10);
+loss = matrix(length(f));
+ng = matrix(length(f));
+Z0 = matrix(length(f));
+
+for(i=1; i<=10; i=i+1){
+    setanalysis('frequency',f(i));
+    findmodes;
+    loss(i) = getdata('mode1','loss');
+    ng(i) = getdata('mode1','ng');
+    Z0(i) = getdata('mode1','Z0');
+}
+
+# Visualize and save to files for import to INTERCONNECT
+plot(f/1e9,loss/100,'f(GHz)','loss [dB/cm]');
+loss = [f,loss];
+plot(f/1e9,real(ng),'f(GHz)','group index');
+ng = [f,real(ng)];
+plot(f/1e9,real(Z0),'f(GHz)','resistance [Ohm]');
+plot(f/1e9,imag(Z0),'f(GHz)','reactance [Ohm]');
+Z0 = [f,real(Z0),imag(Z0)];
+matlabsave("tw_modulator_RF_data",loss,ng,Z0);
