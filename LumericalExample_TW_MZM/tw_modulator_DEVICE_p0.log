@@ -1,0 +1,21 @@
+Ansys Lumerical 2026 R1 Charge Transport Solver Version 7.17.4413 (Windows 64bit)
+ expires (month/day/year): 7/4/2026
+using config file: Ansys Licensing set with ANSYSLMD_LICENSE_FILE
+license host: 
+basic tests complete
+current time: Sat Jul 4 22:21:26 2026
+Running on host: Diego
+Running ldev file: C:\Program Files\Lumerical\v261\bin\device-engine.exe -t 4 C:/Users/diego/OneDrive/Escritorio/EUROPHOTONICS/KIT/PICD/Design project B/TravellingWave_MachZehnderModulator/tw_modulator_DEVICE.ldev -remote
+  ...C:/Users/diego/OneDrive/Escritorio/EUROPHOTONICS/KIT/PICD/Design project B/TravellingWave_MachZehnderModulator/tw_modulator_DEVICE.ldev loaded
+Thread count (t argument) set to 4.
+Remote execution (remote argument) set to true.
+Generating mesh.
+Mesh generation complete (0s)
+  + vertices: 11064
+  + elements: 21991
+Starting solver.
+Requested number of threads: 4
+Simulation completed successfully at: Sat Jul 4 22:22:52 2026
+  + time to run simulation: 74s
+  + time to finalize and save data: 1s
+Peak memory used in the simulation: 295753 kB

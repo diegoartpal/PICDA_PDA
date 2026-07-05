@@ -1,0 +1,73 @@
+#  The script runs the small signal simulation from -0.4 V to 4 V
+#  and calculates resistance the ac junction capacitance from 1 MHz to 10 GHz 
+#  It plots the result with reported measured data and static capaciatnce
+
+CV_baehrjones = [-0.4, 0.261; -0.25, 0.248; 0, 0.223; 0.25, 0.208; 0.5, 0.198; 0.75, 0.190; 1.0, 0.184; 1.5, 0.175; 2.0, 0.168; 3.0, 0.157; 4.0, 0.150]; 
+
+# Set up DC sweep (operating points)
+vmin = -0.4; 
+vmax = 4; 
+N = 12;
+run_simulation = 1;
+
+if (run_simulation){
+load("tw_modulator_DEVICE.ldev");
+switchtolayout;
+save("tw_modulator_DEVICE_ac_RC_modified.ldev");
+
+# don't save this result to file
+setnamed('CHARGE::monitor_charge','save data',0);
+
+setnamed("CHARGE","solver mode","ssac");
+
+# set contact bias
+setnamed('CHARGE::boundary conditions::cathode','sweep type','range');
+setnamed('CHARGE::boundary conditions::cathode','range start',vmin);
+setnamed('CHARGE::boundary conditions::cathode','range stop',vmax);
+setnamed('CHARGE::boundary conditions::cathode','range num points',N);
+
+run('CHARGE');
+}
+# Calculate R and C using impedance
+
+Result = getresult('CHARGE','ac_cathode');
+V = 0.001;
+I = pinch(Result.dI);
+Vc = Result.V_cathode;
+f = Result.f;
+Nf = length(f);
+Z = V/I;
+
+select('CHARGE');
+leng=get('norm length'); #m
+
+# R
+Rslab = real(Z(2,10)); #Ohm for current norm length, at 0 V and 20 GHz
+write('tw_modulator_Rslab_tot.dat',num2str(Rslab*leng),"overwrite"); # Ohm for 1m length.
+#  An increase of norm length increases the cross section and therefore the area where the current goes through.
+#  Hence, Rslab has an inverse relation with norm length.
+#  R / Rslab = leng (m) / 1 (m), R = Rslab*leng/1, where R is resistance for 1 m, Rslab is resistance for norm length  
+
+# C
+Y = 1/Z;
+C_ac = matrix(N,Nf);
+for (i=1:N) {
+C_ac(i,1:Nf) = imag(Y(i,1:Nf))/(2*pi*f);
+}
+
+# plot impedance on a Smith chart
+
+Z_mod = pinch(Z,1,N);
+smithchart(Z_mod);
+
+# Plot capacitance and compare DC, AC, and publication
+loaddata('tw_modulator_dc_C');
+
+plotxy(Vc,C_static,
+    Vc,pinch(C_ac,2,1)/leng*1e15/1e6,
+    Vc,pinch(C_ac,2,5)/leng*1e15/1e6,
+    Vc,pinch(C_ac,2,9)/leng*1e15/1e6,    
+    CV_baehrjones(1:11,1),CV_baehrjones(1:11,2));  # C/leng : F/m   1e15/1e6: F/m to fF/um
+setplot('x label','Voltage (V)');
+setplot('y label','Capacitance (fF/um)');    
+legend('C_static','1 MHz','100 MHz','10 GHz','Ref. [1]');
