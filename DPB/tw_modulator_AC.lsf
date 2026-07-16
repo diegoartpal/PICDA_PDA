@@ -1,0 +1,59 @@
+#  The script runs the small signal simulation from -0.4 V to 4 V
+#  and calculates resistance the ac junction capacitance from 1 MHz to 10 GHz 
+#  It plots the result with reported measured data and static capaciatnce
+
+
+# Set up DC sweep (operating points)
+vmin = 0; 
+vmax = 4; 
+N = 5;
+
+# set contact bias
+setnamed('CHARGE::boundary conditions::cathode','sweep type','range');
+setnamed('CHARGE::boundary conditions::cathode','range start',vmin);
+setnamed('CHARGE::boundary conditions::cathode','range stop',vmax);
+setnamed('CHARGE::boundary conditions::cathode','range num points',N);
+
+
+# Set AC values
+setnamed('CHARGE','frequency spacing','linear');
+setnamed('CHARGE','start frequency',5e9);
+setnamed('CHARGE','stop frequency',60e9);
+setnamed('CHARGE','frequency interval',5e9);
+
+#Run simulation
+run('CHARGE');
+Result = getresult('CHARGE','ac_cathode');
+
+# Calculate values for capcacitance, conductance, and cutoff frequency
+V = 0.001; #Perturbation voltage
+I = pinch(Result.dI);
+Vc = Result.V_cathode; #Bias voltage
+f = Result.f; #Frequencies
+Nf = length(f);
+select('CHARGE'); L=get('norm length'); #Normalized length
+
+
+Z = V/I; #Impedance
+Y = 1/Z; #Admittance
+
+
+# Capacitance C
+C_ac = matrix(N,Nf);
+for (i=1:N) {
+    C_ac(i,1:Nf) = imag(Y(i,1:Nf))/(2*pi*f);
+}
+
+# Conductance G
+G = real(Y);
+#Resistnace
+R = real(Z);
+
+#Length related values
+Cslab = C_ac/L;
+Gslab = G/L;
+
+#Save data
+matlabsave('tw_modulator_AC_Cslab_results',Cslab);
+matlabsave('tw_modulator_AC_Gslab_results',Gslab);
+matlabsave('tw_modulator_freq',f);

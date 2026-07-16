@@ -1,18 +1,20 @@
-# TRAVELLING WAVE MODULATOR  -  CHARGE DC
+# PROJECT DESIGN B: TRAVELLING WAVE MODULATOR
 
-
+# CHARGE DC
 
 # Setup simulation bias
 
 vmin = 0; vmax = 4; N = 5;
-dv=(vmax-vmin)/(N-1);
-V=linspace(vmin,vmax,N);
+
+dv = 0.025;
+vdv = matrix(2*N,1);
+vdv(1:2:(2*N)) = linspace(vmin,vmax,N);
+vdv(2:2:(2*N)) = vdv(1:2:(2*N)) + sign(vmax)*dv;
+
 
 switchtolayout;
-setnamed('CHARGE::boundary conditions::cathode','sweep type','range');
-setnamed('CHARGE::boundary conditions::cathode','range start',vmin);
-setnamed('CHARGE::boundary conditions::cathode','range stop',vmax);
-setnamed('CHARGE::boundary conditions::cathode','range interval',dv);
+setnamed('CHARGE::boundary conditions::cathode','sweep type','value');
+setnamed('CHARGE::boundary conditions::cathode','value table',vdv);
 setnamed('CHARGE::monitor_xzplane','save data',0);
 
 
@@ -31,15 +33,14 @@ Qp = e*pinch(total_charge.p);
 
 Cn = abs(Qn(2:2:(2*N))-Qn(1:2:(2*N)))/dv;
 Cp = abs(Qp(2:2:(2*N))-Qp(1:2:(2*N)))/dv;
+V = vdv(1:2:(2*N));
 C_static = 0.5*(Cn+Cp)*1e15*1e-6;  # fF/um
-savedata('tw_modulator_dc_C',C_static);
 
-
-#Visualize and compare with publication
-plotxy(V,C_static,CV_baehrjones(1:11,1),CV_baehrjones(1:11,2),"Voltage (V)","Capacitance (fF/um)");
-legend('Simulation','Measured (Ref. [1])');
+#Visualize
+plotxy(V,C_static,"Voltage (V)","Capacitance (fF/um)");
+legend('Simulation');
 
 #Save to file for export into INTERCONNECT (for MODE only C at zero bias will be set manually)
 C_static = C_static*1e-15*1e6; #F/m
-Cdc = [V,C_static];
-matlabsave('tw_modulator_dc_C',Cdc);
+Cdc = [vdv(1:2:(2*N)),C_static];
+matlabsave('tw_modulator_DC_C_results',Cdc);
