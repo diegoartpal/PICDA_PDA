@@ -1,0 +1,84 @@
+### Diego Arteaga Palomo - KIT - 2768902
+
+### PROBLEM 2 Multi-mode interference (MMI) couplers
+
+clear;
+switchtolayout;
+dataloc_main ="./data/";  #Folder to save results and data
+
+## INITIAL VARIABLES ##
+    #Data in micrometers
+
+#Define indices
+WG_n = "Si (Silicon) - Palik Copy 1";
+Clad_n = "SiO2 (Glass) - Palik Copy 1";
+
+#Define analysis conditions
+wavelength = 1.310; #wavelength in micrometers
+
+#Simulation margins
+    #chosen as a bit more than one wavelength 1.55 um
+W_ex = 2; #simulation margins width
+H_ex= 2; #simulation margins height
+
+#MMI Design Parameters
+
+Core_height=0.22; #Height of the silicon layer
+WG_width=0.42; #Width of the input/output waveguides
+WG_length=2;
+MMI_width=4.5; #Width of MMI section
+MMI_length=30.3;
+Taper_L=10;
+Taper_w=1.5;
+
+
+switchtolayout;
+DefineGeometry_tapers;
+DefineMaterials_tapers;
+MeshSetup_FDTD;
+AddPorts;
+
+
+#Run S-matrix simulations
+
+
+# # Source: Port 1 only
+# select("FDTD::ports"); # select the port group
+# set("source port","Port 1");
+
+# # Extract S-parameters from FDTD and export for INTERCONNECT
+
+#  #Delete old S-parameter sweep if it exists
+# deletesweep("s-parameter sweep");
+
+#  #Add S-parameter matrix sweep
+#  #In Lumerical, addsweep(3) creates an S-parameter matrix sweep
+# addsweep(3);
+
+# setsweep("s-parameter sweep", "Excite all ports", 1);
+
+# setsweep("s-parameter sweep", "export setup", {
+#     "port 1": {"mode 1": {"label": "mode 1", "id": 1}, "location": "LEFT"},
+#     "port 2": {"mode 1": {"label": "mode 1", "id": 1}, "location": "LEFT"},
+#     "port 3": {"mode 1": {"label": "mode 1", "id": 1}, "location": "RIGHT"},
+#     "port 4": {"mode 1": {"label": "mode 1", "id": 1}, "location": "RIGHT"}
+# });
+
+# #calculate group delay
+# setsweep("s-parameter sweep", "Calculate group delay", 1);
+
+# #Run the sweep
+# runsweep("s-parameter sweep");
+
+# #Get results
+# S_matrix     = getsweepresult("s-parameter sweep", "S matrix");
+# S_parameters = getsweepresult("s-parameter sweep", "S parameters");
+# S_diagnostic = getsweepresult("s-parameter sweep", "S diagnostic");
+
+# #Visualize results
+# visualize(S_matrix);
+# visualize(S_parameters);
+# visualize(S_diagnostic);
+
+# #Export to INTERCONNECT-compatible .dat file
+# exportsweep("s-parameter sweep", "MMI_FDTD_sparams.dat");

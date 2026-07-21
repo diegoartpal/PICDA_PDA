@@ -1,0 +1,38 @@
+### Diego Arteaga Palomo - KIT - 2768902
+
+#FDE Settings
+select("FDTD");
+set("background material",Clad_n);
+
+set('x min',0*(1e-6)); set('x max',(MMI_length+2*Taper_L+2*WG_length)*(1e-6)); 
+set('y', 0); set('y span',(MMI_width+W_ex)*(1e-6));
+set('z',0); set('z span',(Core_height+H_ex)*(1e-6));
+
+set("mesh accuracy",4);
+set("simulation time",  1400e-15);
+
+#I set is this way so you the resolution also changes with size
+    #Its not the same having 10 cells in 1um that 10 cells in 5um
+
+set("x min bc",1);
+set("x max bc",1);
+set("y min bc",1);
+set("y max bc",1);
+set("z min bc",1);
+set("z max bc",1);
+
+select("monitor");
+set("monitor type",7);
+set("x min",0);
+set("x max",(MMI_length+2*Taper_L+2*WG_length)*1e-6);
+set("y",0);
+set("y span",(MMI_width+W_ex)*1e-6);
+set("z",0);
+
+
+
+
+
+
+
+

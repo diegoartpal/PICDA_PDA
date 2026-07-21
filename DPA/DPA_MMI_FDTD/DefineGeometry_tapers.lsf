@@ -1,0 +1,97 @@
+### Diego Arteaga Palomo - KIT - 2768902
+
+switchtolayout;
+
+#Input waveguides
+select('MMI_input1');
+set("Base Width",(WG_width)*1e-6);
+set("Base Height",Core_height*1e-6);
+set("Base Angle",90);
+vtx = [
+    -2*1e-6,   (MMI_width/6)*1e-6;
+    WG_length*1e-6,   (MMI_width/6)*1e-6
+];
+set("poles", vtx);
+
+
+select('MMI_input2');
+set("Base Width",(WG_width)*1e-6);
+set("Base Height",Core_height*1e-6);
+set("Base Angle",90);
+vtx = [
+    -2*1e-6,   -(MMI_width/6)*1e-6;
+    WG_length*1e-6,   -(MMI_width/6)*1e-6
+];
+set("poles", vtx);
+
+
+#Input Tapers
+
+select('MMI_input_taper1');
+vtx = [0,-WG_width/2;0,WG_width/2; Taper_L,Taper_w/2;Taper_L,-Taper_w/2];
+vtx = vtx*(1e-6);
+set('x',WG_length*1e-6);
+set('y',(MMI_width/6)*(1e-6));
+set('vertices',vtx);
+set('z',0);
+set('z span',Core_height*(1e-6));
+
+select('MMI_input_taper2');
+vtx = [0,-WG_width/2;0,WG_width/2; Taper_L,Taper_w/2;Taper_L,-Taper_w/2];
+vtx = vtx*(1e-6);
+set('x',WG_length*1e-6);
+set('y',-(MMI_width/6)*(1e-6));
+set('vertices',vtx);
+set('z',0);
+set('z span',Core_height*(1e-6));
+
+#MMI section
+select('MMI_section');
+set('x min',(WG_length+Taper_L)*(1e-6));
+set('x max',(WG_length+Taper_L+MMI_length)*(1e-6));
+set('y',0);
+set('y span',MMI_width*(1e-6));
+set('z',0);
+set('z span',Core_height*(1e-6));
+
+#Output Tapers
+select('MMI_output_taper1');
+vtx = [0,-Taper_w/2;0,Taper_w/2; Taper_L,WG_width/2;Taper_L,-WG_width/2];
+vtx = vtx*(1e-6);
+set('x',(WG_length+Taper_L+MMI_length)*(1e-6));
+set('y',(MMI_width/6)*(1e-6));
+set('vertices',vtx);
+set('z',0);
+set('z span',Core_height*(1e-6));
+
+select('MMI_output_taper2');
+vtx = [0,-Taper_w/2;0,Taper_w/2; Taper_L,WG_width/2;Taper_L,-WG_width/2];
+vtx = vtx*(1e-6);
+set('x',(WG_length+Taper_L+MMI_length)*(1e-6));
+set('y',-(MMI_width/6)*(1e-6));
+set('vertices',vtx);
+set('z',0);
+set('z span',Core_height*(1e-6));
+
+
+#Output waveguides
+select('MMI_output1');
+set("Base Width",(WG_width)*1e-6);
+set("Base Height",Core_height*1e-6);
+set("Base Angle",90);
+vtx = [
+    (WG_length+2*Taper_L+MMI_length)*(1e-6),   (MMI_width/6)*1e-6;
+    (2*WG_length+2*Taper_L+MMI_length+2)*(1e-6),   (MMI_width/6)*1e-6
+];
+set("poles", vtx);
+
+select('MMI_output2');
+set("Base Width",(WG_width)*1e-6);
+set("Base Height",Core_height*1e-6);
+set("Base Angle",90);
+vtx = [
+    (WG_length+2*Taper_L+MMI_length)*(1e-6),   -(MMI_width/6)*1e-6;
+    (2*WG_length+2*Taper_L+MMI_length+2)*(1e-6),   -(MMI_width/6)*1e-6
+];
+set("poles", vtx);
+

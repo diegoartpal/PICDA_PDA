@@ -1,0 +1,41 @@
+### Diego Arteaga Palomo - KIT - 2768902
+
+
+#Port configuration (Sets ports positions and monitor fundamental mode)
+select("FDTD::ports::port 1");
+set("y", (MMI_width/6)*(1e-6));
+set("y span",(MMI_width/3)*(1e-6));
+set("z", 0);
+set("z span", (Core_height+H_ex)*(1e-6));
+set("mode selection", "fundamental mode");
+set("x",0.5e-6);
+
+
+select("FDTD::ports::port 2");
+set("y", -(MMI_width/6)*(1e-6));
+set("y span",(MMI_width/3)*(1e-6));
+set("z", 0);
+set("z span", (Core_height+H_ex)*(1e-6));
+set("mode selection", "fundamental mode");
+set("x",0.5e-6);
+
+select("FDTD::ports::port 3");
+set("y", (MMI_width/6)*(1e-6));
+set("y span",(MMI_width/3)*(1e-6));
+set("z", 0);
+set("z span", (Core_height+H_ex)*(1e-6));
+set("mode selection", "fundamental mode");
+set("x",(2*WG_length+2*Taper_L+MMI_length-0.5)*1e-6);
+set("direction",1);
+
+
+select("FDTD::ports::port 4");
+set("y", -(MMI_width/6)*(1e-6));
+set("y span",(MMI_width/3)*(1e-6));
+set("z", 0);
+set("z span", (Core_height+H_ex)*(1e-6));
+set("mode selection", "fundamental mode");
+set("x",(2*WG_length+2*Taper_L+MMI_length-0.5)*1e-6);
+set("direction",1);
+
+

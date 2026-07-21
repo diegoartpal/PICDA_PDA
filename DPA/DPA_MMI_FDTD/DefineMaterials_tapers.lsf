@@ -1,0 +1,21 @@
+### Diego Arteaga Palomo - KIT - 2768902
+
+select("MMI_input1");
+set("material",WG_n);
+select("MMI_input2");
+set("material",WG_n);
+select("MMI_output1");
+set("material",WG_n);
+select("MMI_output2");
+set("material",WG_n);
+select("MMI_section");
+set("material",WG_n);
+
+select("MMI_input_taper1");
+set("material",WG_n);
+select("MMI_input_taper2");
+set("material",WG_n);
+select("MMI_output_taper1");
+set("material",WG_n);
+select("MMI_output_taper2");
+set("material",WG_n);
