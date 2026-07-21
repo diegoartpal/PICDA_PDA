@@ -1,0 +1,325 @@
+#  Directional Coupler – EME 
+#  wg = 160 nm,  LC = 3.5268 um
+
+switchtolayout;
+clear;
+deleteall;
+
+# Parameters
+wWG = 0.420e-6;       # waveguide width            [m]
+hWG = 0.220e-6;       # waveguide height            [m]
+wg  = 0.140e-6;       # coupling gap (edge-to-edge) [m]
+LC  = 26.0499e-6;    # coupling section length     [m]
+LS  = 5.0e-6;         # S-bend length               [m]
+dS  = 1.0e-6;         # S-bend lateral offset       [m]
+LWG = 5.0e-6;         # access waveguide length     [m]
+
+# EME wavelength sweep
+lambda_start = 1.258e-6;
+lambda_stop  = 1.362e-6;
+N_lambda     = 20;
+lam0 = 1301e-9;
+mat_si   = "Si (Silicon) - Palik Copy 1";
+mat_sio2 = "SiO2 (Glass) - Palik Copy 1";
+dy0 = 20e-9;
+dz0 = 20e-9;
+
+# EME modes
+modes_wg = 4;
+modes_coupler = 12;
+modes_Sbend = 12;
+cells_Sbend = 10;
+
+port_offset = 0.5e-6;
+
+# Edge-to-edge gap wg  =>  WG centre-to-centre = wWG + wg
+y_coup =  (wWG + wg) / 2;   # top WG centre (coupling section)
+
+# Z coordinate of waveguide vertical centre
+#z_wg = hWG / 2;
+z_wg = 0;
+
+file_out = "DC_FDTD_port_powers.txt";
+write(file_out, "lambda_nm,T11_absS11_2,T21_absS21_2,T31_absS31_2,T41_absS41_2,split3,split4,total_power");
+
+# Add EME solver and ports
+addeme;
+setactivesolver("EME");
+addemeport;
+addemeport;
+
+# Coupling section  (two straight Si rectangles)
+# Top waveguide
+addrect;
+set("name",     "coup_top");
+set("material", mat_si);
+set("x",        0);      set("x span", LC);
+set("y",        y_coup); set("y span", wWG);
+set("z",        z_wg);   set("z span", hWG);
+
+# Bottom waveguide
+addrect;
+set("name",     "coup_bot");
+set("material", mat_si);
+set("x",        0);       set("x span", LC);
+set("y",       -y_coup);  set("y span", wWG);
+set("z",        z_wg);    set("z span", hWG);
+
+# Access waveguides  (straight, four segments)
+# Left side
+addrect;
+set("name",     "acc_top_L");
+set("material", mat_si);
+set("x",        -LC/2 -LS - LWG/2);  set("x span", LWG);
+set("y",        y_coup + dS);        set("y span", wWG);
+set("z",        z_wg);               set("z span", hWG);
+
+addrect;
+set("name",     "acc_bot_L");
+set("material", mat_si);
+set("x",        -LC/2 -LS - LWG/2);  set("x span", LWG);
+set("y",       -(y_coup + dS));      set("y span", wWG);
+set("z",        z_wg);               set("z span", hWG);
+
+# Right side
+addrect;
+set("name",     "acc_top_R");
+set("material", mat_si);
+set("x",        LC/2 +LS + LWG/2);  set("x span", LWG);
+set("y",        y_coup + dS);       set("y span", wWG);
+set("z",        z_wg);              set("z span", hWG);
+
+addrect;
+set("name",     "acc_bot_R");
+set("material", mat_si);
+set("x",        LC/2 +LS + LWG/2);  set("x span", LWG);
+set("y",       -(y_coup + dS));     set("y span", wWG);
+set("z",        z_wg);              set("z span", hWG);
+
+# S-bends  
+#  addobject("s_bend_wg") adds the structure group from Lumerical's
+
+# Update EME solver
+#function update_eme_solver(p, lambda_sim) {
+
+    L_total = 2*LS + 2*LWG + LC;
+
+    select("EME");
+
+    set("x min", -L_total/2);
+
+    set("y", 0);
+    set("y span", 2*(y_coup + dS + wWG/2 + 2e-6));
+
+    set("z", z_wg);
+    set("z span", hWG + 2.5e-6);
+
+    set("background material", mat_sio2);
+    set("wavelength", lam0);
+
+    set("y min bc", "Metal");
+    set("y max bc", "Metal");
+    set("z min bc", "Metal");
+    set("z max bc", "Metal");
+
+    set("define y mesh by", "maximum mesh step");
+    set("define z mesh by", "maximum mesh step");
+    set("dy", dy0);
+    set("dz", dz0);
+
+    set("number of cell groups", 5);
+    set("group spans", [LWG; LS; LC; LS; LWG]);
+    set("cells", [1; cells_Sbend; 1; cells_Sbend; 1]);
+
+    set("allow custom eigensolver settings", 1);
+    set("modes", [modes_wg; modes_Sbend; modes_coupler; modes_Sbend; modes_wg]);
+
+    # 0 = none, 1 = CVCS for the taper groups
+    set("subcell method", [0; 1; 0; 1; 0]);
+#}
+
+
+# S-bend properties
+function set_sbend(sname, ox, oy, yspan, zwg, wwg, hwg, material, Ls) {
+    addobject("s_bend_wg");
+    set("name",        sname);
+    set("x",           ox);
+    set("y",           oy);
+    set("z",           zwg);
+    set("base angle",  90);
+    set("base width",  wwg);
+    set("base height", hwg);
+    set("material",    material);
+    set("x span",      Ls);
+    set("y span",      yspan);
+}
+
+# Left S-bends 
+set_sbend("sbend_top_L",  -LC/2 - LS,  y_coup + dS, -dS, z_wg, wWG, hWG, mat_si, LS);   # top:  y_acc -> y_coup  (inward)
+set_sbend("sbend_top_L",  -LC/2 - LS,  -(y_coup + dS), dS, z_wg, wWG, hWG, mat_si, LS);   # top:  y_acc -> y_coup  (inward)  # bot: -y_acc -> -y_coup (inward)
+
+# Right S-bends 
+set_sbend("sbend_top_R",  LC/2,  y_coup, dS, z_wg, wWG, hWG, mat_si, LS);   # top:  y_coup -> y_acc  (outward)
+set_sbend("sbend_bot_R",  LC/2, -y_coup, -dS, z_wg, wWG, hWG, mat_si, LS);  # bot: -y_coup -> -y_acc (outward)
+
+# Ports
+#     Port 1 (source) : top-left   
+#     Port 2 (monitor): bot-left 
+#     Port 3 (monitor): top-right
+#     Port 4 (monitor): bot-right
+
+py_span = wWG + 2e-6;   # port transverse span
+pz_span = hWG + 2e-6;   # port vertical span
+port_offset = 0.3e-6;
+
+function add_port(py, pyspan, zwg, pzspan, portoffset) {
+   
+    setactivesolver("EME");
+
+    select("EME::Ports::port_1");
+    set("port location", "left");
+    set("use full simulation span", 0);
+    set("y", py);
+    set("y span", pyspan);
+    set("z", zwg);
+    set("z span", pzspan);
+    set("offset", portoffset);
+    set("mode selection", "fundamental TE mode");
+
+    select("EME::Ports::port_2");
+    set("port location", "left");
+    set("use full simulation span", 0);
+    set("y", -py);
+    set("y span", pyspan);
+    set("z", zwg);
+    set("z span", pzspan);
+    set("offset", portoffset);
+    set("mode selection", "fundamental TE mode");
+
+    select("EME::Ports::port_3");
+    set("port location", "right");
+    set("use full simulation span", 0);
+    set("y", py);
+    set("y span", pyspan);
+    set("z", zwg);
+    set("z span", pzspan);
+    set("offset", -portoffset);
+    set("mode selection", "fundamental TE mode");
+
+    select("EME::Ports::port_4");
+    set("port location", "right");
+    set("use full simulation span", 0);
+    set("y", -py);
+    set("y span", pyspan);
+    set("z", zwg);
+    set("z span", pzspan);
+    set("offset", -portoffset);
+    set("mode selection", "fundamental TE mode");
+}
+
+py_span = wWG + 2e-6;   # port transverse span
+pz_span = hWG + 2e-6;   # port vertical span
+port_offset = 0.3e-6;
+
+add_port(y_coup + dS, py_span, z_wg, pz_span, port_offset);   
+
+
+#adddftmonitor;
+#set("name", "field_core_center");
+#set("monitor type", "2D Z-normal");
+#set("x", 0);
+#set("y", hWG/2);
+#set("z", z_wg);
+#set("x span", LC + LC+2*LS+LWG);
+#set("y span", y_coup + 2*wWG + 2*dS + 1e-6);
+
+# Run
+run;
+emepropagate;
+
+S = getresult("EME", "user s matrix");
+T11 = abs(S(1,1))^2;
+T21 = abs(S(2,1))^2;
+T31 = abs(S(3,1))^2;
+T41 = abs(S(4,1))^2;
+split3 = T31/(T31 + T41);
+split4 = T41/(T31 + T41);
+# Built-in EME wavelength sweep and S-parameter export
+#setemeanalysis("wavelength sweep", 1);
+#setemeanalysis("start wavelength", lambda_start);
+#setemeanalysis("stop wavelength", lambda_stop);
+#setemeanalysis("number of wavelength points", N_lambda);
+#setemeanalysis("calculate group delays", 1);
+
+#emesweep("wavelength sweep");
+
+# This file can be loaded in INTERCONNECT's Optical N Port S-Parameter element.
+#exportemesweep("MMI_4port_sparams.dat", "lumerical");
+
+#S_lam = getemesweep("S_wavelength_sweep");
+
+#lambda_vec = S_lam.wavelength;
+#s11_vec = S_lam.s11;
+#s21_vec = S_lam.s21;
+#s31_vec = S_lam.s31;
+#s41_vec = S_lam.s41;
+#T11 = abs(s11_vec)^2;
+#T21 = abs(s21_vec)^2;
+#T31 = abs(s31_vec)^2;
+#T41 = abs(s41_vec)^2;
+#split3 = T31/(T31 + T41);
+#split4 = T41/(T31 + T41);
+#total_power = T11 + T21 + T31 + T41;
+#line = num2str(lambda_vec, "%.6f");
+#line = line + "," + num2str(T11, "%.12e");
+#line = line + "," + num2str(T21, "%.12e");
+#line = line + "," + num2str(T31, "%.12e");
+#line = line + "," + num2str(T41, "%.12e");
+#line = line + "," + num2str(split3, "%.12e");
+#line = line + "," + num2str(split4, "%.12e");
+#line = line + "," + num2str(total_power, "%.12e");
+
+#write(file_out, line);
+
+#N_lam = length(lambda_vec);
+
+#for (ilam = 1:N_lam) {
+
+    #lambda_sim = lambda_vec(ilam);
+    #T11(ilam) = abs(s11_vec(ilam))^2;
+    #T21(ilam) = abs(s21_vec(ilam))^2;
+    #T31(ilam) = abs(s31_vec(ilam))^2;
+    #T41(ilam) = abs(s41_vec(ilam))^2;
+    #split3(ilam) = T31(ilam)/(T31(ilam) + T41(ilam));
+    #split4(ilam) = T41(ilam)/(T31(ilam) + T41(ilam));
+    #total_power(ilam) = T11(ilam) + T21(ilam) + T31(ilam) + T41(ilam);
+
+   #line = num2str(lambda_sim, "%.6f");
+    #line = line + "," + num2str(T11(ilam), "%.12e");
+    #line = line + "," + num2str(T21(ilam), "%.12e");
+    #line = line + "," + num2str(T31(ilam), "%.12e");
+    #line = line + "," + num2str(T41(ilam), "%.12e");
+    #line = line + "," + num2str(split3(ilam), "%.12e");
+    #line = line + "," + num2str(split4(ilam), "%.12e");
+    #line = line + "," + num2str(total_power(ilam), "%.12e");
+
+    #write(file_out, line);
+ 
+#}
+
+# Console summary at 1550 nm
+#idx = find(lambda_vec, lam0);
+#?"";
+?"=== S-parameters at " + num2str(lam0*1e9,"%.0f") + " nm ===";
+?"|S11|^2 = " + num2str(T11*100,"%.2f") + " %  (reflection)";
+?"|S21|^2 = " + num2str(T21*100,"%.2f") + " %  (back-coupling)";
+?"|S31|^2 = " + num2str(T31*100,"%.2f") + " %  (bar port, Port 3)";
+?"|S41|^2 = " + num2str(T41*100,"%.2f") + " %  (cross port, Port 4)";
+?"Port 3 splitting = " + num2str(split3, "%.6f");
+?"Port 4 splitting = " + num2str(split4, "%.6f");
+#?"Total port power = " + num2str(total_power, "%.6f");
+?"Sum     = " + num2str((T11+T21+T31+T41)*100,"%.2f") + " %";
+
+
+#visualize(getresult("field_core_center", "E"));
+#exportfigure("DC_FDTD_field_core_center.png");
