@@ -1,0 +1,215 @@
+#  Directional Coupler – 3D FDTD 
+
+switchtolayout;
+clear;
+deleteall;
+
+# Parameters
+wWG = 0.420e-6;       # waveguide width            [m]
+hWG = 0.220e-6;       # waveguide height            [m]
+wg  = 0.140e-6;       # coupling gap (edge-to-edge) [m]
+LC  = 20.1e-6;    # coupling section length [m], kappa =0.721162
+LS  = 5.0e-6;         # S-bend length               [m]
+dS  = 1.0e-6;         # S-bend lateral offset       [m]
+LWG = 6.0e-6;         # access waveguide length     [m]
+
+lam_min = 1258e-9;
+lam_max = 1362e-9;
+lam0    = 1301e-9;
+Nfreq = 20;
+
+mat_si   = "Si (Silicon) - Palik Copy 1";
+mat_sio2 = "SiO2 (Glass) - Palik Copy 1";
+
+# Edge-to-edge gap wg  =>  WG centre-to-centre = wWG + wg
+y_coup =  (wWG + wg) / 2;   # top WG centre (coupling section)
+
+# Z coordinate of waveguide vertical centre
+#z_wg = hWG / 2;
+z_wg = 0;
+
+# FDTD region
+addfdtd;
+set("dimension",          "3D");
+set("background material", mat_sio2);
+
+set("x",      0);
+set("x span", LC+2*LS+1.5*LWG);   # device length + 0.5 um PML each end
+set("y",      0);
+set("y span", 2*(y_coup + dS + wWG/2 + 2e-6));
+set("z",      z_wg);
+set("z span", hWG + 2.5e-6);
+
+set("mesh accuracy",    3);
+set("simulation time",  4000e-15);
+set("x min bc", "PML");   set("x max bc", "PML");
+set("y min bc", "PML");   set("y max bc", "PML");
+set("z min bc", "PML");   set("z max bc", "PML");
+
+# Global source and monitor settings
+
+setglobalsource("wavelength start", lam_min);
+setglobalsource("wavelength stop", lam_max);
+
+setglobalmonitor("frequency points", Nfreq);
+
+# Fine mesh override in coupling gap
+addmesh;
+set("x",      0);
+set("x span", LC + 0.5e-6);
+set("y",      0);
+set("y span", wg + 10e-9);
+set("z",      z_wg);
+set("z span", hWG + 0.3e-6);
+set("dx",     20e-9);
+set("dy",     10e-9);
+set("dz",     20e-9);
+
+# Coupling section  (two straight Si rectangles)
+# Top waveguide
+addrect;
+set("name",     "coup_top");
+set("material", mat_si);
+set("x",        0);      set("x span", LC);
+set("y",        y_coup); set("y span", wWG);
+set("z",        z_wg);   set("z span", hWG);
+
+# Bottom waveguide
+addrect;
+set("name",     "coup_bot");
+set("material", mat_si);
+set("x",        0);       set("x span", LC);
+set("y",       -y_coup);  set("y span", wWG);
+set("z",        z_wg);    set("z span", hWG);
+
+# Access waveguides  (straight, four segments)
+# Left side
+addrect;
+set("name",     "acc_top_L");
+set("material", mat_si);
+set("x",        -LC/2 -LS - LWG/2);  set("x span", LWG);
+set("y",        y_coup + dS);        set("y span", wWG);
+set("z",        z_wg);               set("z span", hWG);
+
+addrect;
+set("name",     "acc_bot_L");
+set("material", mat_si);
+set("x",        -LC/2 -LS - LWG/2);  set("x span", LWG);
+set("y",       -(y_coup + dS));      set("y span", wWG);
+set("z",        z_wg);               set("z span", hWG);
+
+# Right side
+addrect;
+set("name",     "acc_top_R");
+set("material", mat_si);
+set("x",        LC/2 +LS + LWG/2);  set("x span", LWG);
+set("y",        y_coup + dS);       set("y span", wWG);
+set("z",        z_wg);              set("z span", hWG);
+
+addrect;
+set("name",     "acc_bot_R");
+set("material", mat_si);
+set("x",        LC/2 +LS + LWG/2);  set("x span", LWG);
+set("y",       -(y_coup + dS));     set("y span", wWG);
+set("z",        z_wg);              set("z span", hWG);
+
+# S-bend properties
+function set_sbend(sname, ox, oy, yspan, zwg, wwg, hwg, material, Ls) {
+    addobject("s_bend_wg");
+    set("name",        sname);
+    set("x",           ox);
+    set("y",           oy);
+    set("z",           zwg);
+    set("base angle",  90);
+    set("base width",  wwg);
+    set("base height", hwg);
+    set("material",    material);
+    set("x span",      Ls);
+    set("y span",      yspan);
+}
+
+# Left S-bends 
+set_sbend("sbend_top_L",  -LC/2 - LS,  y_coup + dS, -dS, z_wg, wWG, hWG, mat_si, LS);   # top:  y_acc -> y_coup  (inward)
+set_sbend("sbend_top_L",  -LC/2 - LS,  -(y_coup + dS), dS, z_wg, wWG, hWG, mat_si, LS);   # top:  y_acc -> y_coup  (inward)  # bot: -y_acc -> -y_coup (inward)
+
+# Right S-bends 
+set_sbend("sbend_top_R",  LC/2,  y_coup, dS, z_wg, wWG, hWG, mat_si, LS);   # top:  y_coup -> y_acc  (outward)
+set_sbend("sbend_bot_R",  LC/2, -y_coup, -dS, z_wg, wWG, hWG, mat_si, LS);  # bot: -y_coup -> -y_acc (outward)
+
+# Ports
+#     Port 1 (source) : top-left   
+#     Port 2 (monitor): bot-left 
+#     Port 3 (monitor): top-right
+#     Port 4 (monitor): bot-right
+
+py_span = wWG + 2.5e-6;   # port transverse span
+pz_span = hWG + 2e-6;   # port vertical span
+port_offset = 0.3e-6;
+function add_port(pname, px, py, pdir, pyspan, zwg, pzspan) {
+    addport;
+    set("name",             pname);
+    set("injection axis",   "x-axis");
+    set("direction",        pdir);
+    set("x",                px);
+    set("y",                py);
+    set("y span",           pyspan);
+    set("z",                zwg);
+    set("z span",           pzspan);
+    set("mode selection",   "fundamental TE mode");
+}
+
+add_port("Port 1", -LC/2-LS-LWG+1.5e-6 + port_offset,  y_coup + dS, "forward", py_span, z_wg, pz_span);    # source  (+x)
+add_port("Port 2", -LC/2-LS-LWG+1.5e-6 + port_offset,  -(y_coup + dS), "forward", py_span, z_wg, pz_span);
+add_port("Port 3",  LC/2+LS+LWG-1.5e-6 - port_offset,  y_coup + dS, "backward", py_span, z_wg, pz_span);
+add_port("Port 4",  LC/2+LS+LWG-1.5e-6 - port_offset,  -(y_coup + dS), "backward", py_span, z_wg, pz_span);
+
+# Source: Port 1 only
+select("FDTD::ports"); # select the port group
+set("source port","Port 1");
+
+#adddftmonitor;
+#set("name", "field_core_center");
+#set("monitor type", "2D Z-normal");
+#set("x", 0);
+#set("y", hWG/2);
+#set("z", z_wg);
+#set("x span", LC+2*LS+LWG);
+#set("y span", y_coup + 2*wWG + 2*dS + 1e-6);
+
+
+# Extract S-parameters from FDTD and export for INTERCONNECT
+
+ #Delete old S-parameter sweep if it exists
+deletesweep("FDTD_DC_s-parametersweep_1stStage_2ndCoupler");
+
+ #Add S-parameter matrix sweep
+ #In Lumerical, addsweep(3) creates an S-parameter matrix sweep
+addsweep(3); 
+setsweep("s-parameter sweep", "name", "FDTD_DC_s-parametersweep_1stStage_2ndCoupler"); 
+setsweep("FDTD_DC_s-parametersweep_1stStage_2ndCoupler", "excite all ports", 1);
+
+setsweep("FDTD_DC_s-parametersweep_1stStage_2ndCoupler", "export setup", {
+    "Port 1": {"mode 1": {"label": "mode 1", "id": 1}, "location": "LEFT"},
+    "Port 2": {"mode 1": {"label": "mode 1", "id": 1}, "location": "LEFT"},
+    "Port 3": {"mode 1": {"label": "mode 1", "id": 1}, "location": "RIGHT"},
+    "Port 4": {"mode 1": {"label": "mode 1", "id": 1}, "location": "RIGHT"}
+});
+
+ #calculate group delay
+setsweep("FDTD_DC_s-parametersweep_1stStage_2ndCoupler", "Calculate group delay", 1);
+
+ #Run the sweep
+runsweep("FDTD_DC_s-parametersweep_1stStage_2ndCoupler");
+
+ #Get results
+S_matrix     = getsweepresult("FDTD_DC_s-parametersweep_1stStage_2ndCoupler", "S matrix");
+S_parameters = getsweepresult("FDTD_DC_s-parametersweep_1stStage_2ndCoupler", "S parameters");
+S_diagnostic = getsweepresult("FDTD_DC_s-parametersweep_1stStage_2ndCoupler", "S diagnostic");
+
+ #Visualize results
+visualize(S_matrix);
+visualize(S_parameters);
+visualize(S_diagnostic);
+
+ #Export to INTERCONNECT-compatible .dat file
+exportsweep("FDTD_DC_s-parametersweep_1stStage_2ndCoupler", "DC_FDTD_sparams_1stStage_2ndCoupler.dat");
