@@ -1,0 +1,74 @@
+# Daryna Sych
+# ==========================================================
+# Creates and configures EME simulation region
+# This simulation TAKES INTO ACCOUNT TAPERS
+# ==========================================================
+
+# EME parameters
+
+dy_eme = 0.02e-6; # Results after the convergence test
+dz_eme = 0.02e-6; # Results after the convergence test
+
+xspan_eme = (2*(L_wg + L_taper)+ L_MMI);
+yspan_eme = 300*dy_eme; # 6 um Results after the convergence test
+zspan_eme = 175*dz_eme; # 3.5 um Results after the convergence test
+
+# Define number of modes used for analysis
+Taper_modes = 11;
+MMI_modes = 28;   # Results after the convergence test
+WG_modes = 10; 
+lambda_m = 1550e-9;
+n_SiO2 = "SiO2 (Glass) - Palik Copy 2";
+
+# ========================================================
+# Create EME simulation
+addeme;
+
+
+# General settings
+set("allow custom eigensolver settings",1);
+
+set("wavelength", lambda_m);
+
+set("x min", -0.5*xspan_eme);
+
+# Cell groups
+set("number of cell groups",5); # Creare cells for tapers
+set("subcell method", [0;1;0;1;0]);
+set("group spans",
+    [L_wg; L_taper; L_MMI; L_taper; L_wg]);
+
+set("cells",
+    [1;10; 1;10; 1]);
+
+set("modes",
+    [WG_modes; Taper_modes; MMI_modes; Taper_modes; WG_modes]);
+
+set("display cells",1);
+
+# EME mesh
+set("min mesh step",5e-9);
+
+set("define y mesh by","maximum mesh step");
+set("define z mesh by","maximum mesh step");
+
+set("dy",dy_eme);
+set("dz",dz_eme);
+
+# Boundary conditions
+Boundary_Conditions = 2;
+
+set("y min bc",Boundary_Conditions);
+set("y max bc",Boundary_Conditions);
+
+set("z min bc",Boundary_Conditions);
+set("z max bc",Boundary_Conditions);
+
+# Simulation span
+set("y",0);
+set("z",0);
+
+set("y span",yspan_eme);
+set("z span",zspan_eme);
+
+set("background material", n_SiO2);

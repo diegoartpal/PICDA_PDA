@@ -1,0 +1,334 @@
+# Daryna Sych
+# ============================================================================
+# EME CONVERGENCE TEST SCRIPT
+#
+# Purpose:
+# This script performs convergence analysis of the EME simulation setup for
+# the MMI coupler WITHOUT TAPERS
+#
+# Available convergence tests:
+#
+# dy_sweep  : Sweep transverse mesh step in Y direction
+# dz_sweep   : Sweep transverse mesh step in Z direction
+# yspan_sweep : Sweep EME simulation region Y span
+# zspan_sweep : Sweep EME simulation region Z span
+# modes_MMI : Sweep number of MMI modes
+# length_MMI : Sweep length of MMI;
+#
+# Notes:
+# Power transmission is evaluated using:
+#       S31 = |S(3,1)|²
+#       S41 = |S(4,1)|²
+#
+# Initial EME parameters defined below used as starting values for
+# convergence studies.
+# ============================================================================
+
+switchtolayout();
+deleteall();
+clear();
+
+results_convergence ="./Results/ConvergenceTest1310nm/";  #Folder to save results and data
+
+# Choose wavelength
+test_wavelength = 1291e-9;
+
+
+# Set INITIAL GUESS OF the sweep parameters 
+# =============================
+yspan_eme_sweep = 6e-6; # Sweep # CHANGED FROM 2.56
+zspan_eme_sweep = 6e-6; # Sweep
+dy_eme_sweep = 0.02e-6; # Sweep
+dz_eme_sweep = 0.02e-6; # Sweep
+MMI_modes_sweep = 30;   # Sweep
+# =============================
+
+
+DefineGeometryTapers;  # MMI and WG are defined
+SetEMEtapers; # Create EME simulation
+
+select('EME');
+set("wavelength",test_wavelength );
+set("y span",yspan_eme_sweep);
+set("z span",zspan_eme_sweep);
+set("dy",dy_eme_sweep);
+set("dz",dz_eme_sweep);
+set("modes",
+    [WG_modes; Taper_modes; MMI_modes_sweep; Taper_modes; WG_modes]);
+
+# =============================
+
+SetPorts; # Create and set the Ports
+
+
+# ===================
+# SWEEP RUN SELECTION 
+# flag=0 -> sweep is not selected for run
+# flag=1 -> sweep is selected for run
+
+dy_sweep_flag = 0;
+dz_sweep_flag = 0;
+yspan_sweep_flag = 0;
+zspan_sweep_flag =0;
+modes_MMI_flag=0;
+length_MMI_flag=1;
+# ===================
+
+# ===================
+# DEFINE LIMITS OF CONVERGENCE TEST
+# ===================
+
+# ******** dy ********
+n_points_dy = 12;
+dy_sweep = [
+    5;
+    10;
+    20;
+    30;
+    40;
+    50;
+    60;
+    100;
+    120;
+    150;
+    200;
+    250
+]*1e-9;
+
+# ******** dz ********
+n_points_dz = 12;
+dz_sweep = [
+    5;
+    10;
+    20;
+    30;
+    40;
+    50;
+    60;
+    100;
+    120;
+    150;
+    200;
+    250
+]*1e-9;
+
+# ******** y span ********
+num_cells_min_y = 50;
+num_cells_max_y = 450;
+n_points_yspan = 21;
+num_cells_sweep_y = linspace(num_cells_min_y,num_cells_max_y,n_points_yspan);
+yspan_sweep = num_cells_sweep_y * dy_eme_sweep;
+
+# ******** z span ********
+num_cells_min_z = 50;
+num_cells_max_z = 350;
+n_points_zspan = 21;
+num_cells_sweep_z = linspace(num_cells_min_z,num_cells_max_z,n_points_zspan);
+zspan_sweep = num_cells_sweep_z * dz_eme_sweep;
+# ===================
+
+
+if (dy_sweep_flag==1) {
+
+    ?'Initialization of dy sweep';
+    S31 = zeros(n_points_dy);
+    S41 = zeros(n_points_dy);
+
+    for (i = 1:n_points_dy){
+        ?'Iteration '+num2str(i) + ' out of '+ num2str(n_points_dy)+ '...';
+        switchtolayout();
+        select('EME');
+        set('dy', dy_sweep(i));
+
+        run;
+        emepropagate;
+
+        S=getresult("EME", "user s matrix");
+
+        ?S31(i)=abs(S(3,1))^2;
+        ?S41(i)=abs(S(4,1))^2;
+    }
+
+    filename = results_convergence + "Smatrix_vs_dy_span.txt";
+    write(filename,"dy\tS31\tS41");
+    result = [dy_sweep,S31,S41];
+    write(filename,num2str(result));
+
+    ?'Sweep results are available for dy';
+}
+
+if (dz_sweep_flag==1) {
+
+    ?'Initialization of dz sweep';
+
+    S31 = zeros(n_points_dz);
+    S41 = zeros(n_points_dz);
+
+    for (i = 1:n_points_dz){
+        ?'Iteration '+num2str(i) + ' out of '+ num2str(n_points_dz)+ '...';
+        switchtolayout();
+        select('EME');
+        set('dz', dz_sweep(i));
+
+        run;
+        emepropagate;
+
+        S=getresult("EME", "user s matrix");
+
+        ?S31(i)=abs(S(3,1))^2;
+        ?S41(i)=abs(S(4,1))^2;
+    }
+
+    filename = results_convergence+"Smatrix_vs_dz_span.txt";
+    write(filename,"dz\tS31\tS41");
+    result = [dz_sweep,S31,S41];
+    write(filename,num2str(result));
+
+    ?'Sweep results are available for dz';
+}
+
+
+if (yspan_sweep_flag==1){
+
+    ?'Initialization of y span sweep';
+
+    S31 = zeros(n_points_yspan);
+    S41 = zeros(n_points_yspan);
+
+    for (i = 1:n_points_yspan){
+        ?'Iteration '+num2str(i) + ' out of '+ num2str(n_points_yspan)+ '...';
+
+        switchtolayout();
+        select('EME');
+        set('y span', yspan_sweep(i));
+
+        run;
+        emepropagate;
+
+        S=getresult("EME", "user s matrix");
+
+        ?S31(i)=abs(S(3,1))^2;
+        ?S41(i)=abs(S(4,1))^2;
+    }
+
+    filename = results_convergence + "Smatrix_vs_yspan.txt";
+    write(filename,"y span sweep\tS31\tS41");
+    result = [yspan_sweep,S31,S41];
+    write(filename,num2str(result));
+
+    ?'Sweep results are available for y span';
+}
+
+
+if (zspan_sweep_flag==1){
+
+    ?'Initialization of z span sweep';
+
+    S31 = matrix(n_points_zspan);
+    S41 = matrix(n_points_zspan);
+
+    for (i = 1:n_points_zspan){
+
+        ?'Iteration '+num2str(i)+' out of '+num2str(n_points_zspan)+'...';
+
+        switchtolayout();
+        select('EME');
+        set('z span', zspan_sweep(i));
+
+        run;
+        emepropagate;
+
+        S=getresult("EME", "user s matrix");
+
+        ?S31(i)=abs(S(3,1))^2;
+        ?S41(i)=abs(S(4,1))^2;
+    }
+
+    filename = results_convergence + "Smatrix_vs_zspan.txt";
+    write(filename,"z span sweep\tS31\tS41");
+    result = [zspan_sweep,S31,S41];
+    write(filename,num2str(result));
+
+    ?'Sweep results are available for z span';
+}
+
+if (modes_MMI_flag==1){
+    # ------ RUN number of MMI modes CONVERGENCE TEST ------
+    # Use optimized sweep parameters 
+    select('EME');
+    set("y span",yspan_eme);
+    set("z span",zspan_eme);
+    set("dy",dy_eme);
+    set("dz",dz_eme);
+        
+    ## convergence test for # of modes
+    select("EME");
+    run;
+    setemeanalysis ("mode convergence sweep", 1) ; 
+    setemeanalysis ("start mode", 4) ; 
+    setemeanalysis ("mode interval", 1);
+
+    emesweep ("mode convergence sweep");
+    S = getemesweep ('S_mode_convergence_sweep') ;
+
+
+    setemeanalysis('override max modes', 1);
+    setemeanalysis('max modes', 35);
+
+    S31 = abs(S.s31^2);
+    S41 = abs(S.s41^2);
+
+    S_modeSwp = getemesweep('S_mode_convergence_sweep');
+    filename = results_convergence + "Smatrix_vs_MMI_modes.txt";
+    write(filename,"MMI modes\tS31\tS41");
+    result = [S_modeSwp.modes,S31,S41];
+    write(filename,num2str(result));
+    ?'Sweep results are available for number of modes MMI' ;
+
+}
+
+if (length_MMI_flag==1){
+    ?'Initialization of LENGTH MMI sweep';
+    # Here the parameterts used that were obtained after convergance test. 
+
+    select('EME');
+    set("y span",yspan_eme);
+    set("z span",zspan_eme);
+    set("dy",dy_eme);
+    set("dz",dz_eme);
+    set("modes",
+    [WG_modes; MMI_modes; WG_modes]);
+
+    run; 
+    setemeanalysis('propagation sweep', 1);
+    setemeanalysis('parameter', 'group span 2');
+    setemeanalysis('start', length_MMI_start);
+    setemeanalysis('stop', length_MMI_end);
+    setemeanalysis('interval', 1);
+
+    emesweep('propagation sweep');
+    S = getemesweep('S');
+    MMI_length = S.group_span_2;
+    loss = 1 - abs(S.s31^2) - abs(S.s41^2);
+    # plot(MMI_length*1e6, loss, 'MMI length (um)', 'Loss', 'Loss vs Modes');
+
+    S31 = abs(S.s31^2);
+    S41 = abs(S.s41^2);
+
+    filename = results_convergence + "Smatrix_vs_MMI_length" +  num2str(test_wavelength) + ".txt";
+    write(filename,"MMI length\tS31\tS41");
+    result = [MMI_length,S31,S41];
+    write(filename,num2str(result));
+
+    ? 'Sweep results are available for number of MMI length' ;
+}
+
+
+
+
+
+
+
+
+
+

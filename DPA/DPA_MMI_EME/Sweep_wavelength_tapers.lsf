@@ -1,0 +1,60 @@
+
+# Daryna Sych - 2765716
+# ============================================================================
+
+
+switchtolayout();
+deleteall();
+clear();
+
+results_convergence ="./Results/SweepLwg/";  #Folder to save results and data
+
+DefineGeometryTapers;  # MMI and WG are defined
+
+SetEMEtapers; # Create EME simulation
+
+# =============================
+
+SetPorts; # Create and set the Ports
+
+
+
+?'Initialization of WAVELENGTH sweep';
+    
+lambda_sweep_min = 1260e-9;
+lambda_sweep_max = 1360e-9;
+
+n_points = 11;
+
+wavelength_sweep = linspace(
+    lambda_sweep_min,
+    lambda_sweep_max,
+    n_points
+);
+
+    S31 = zeros(n_points);
+    S41 = zeros(n_points);
+
+    for (i = 1:n_points){
+        ?'Iteration '+num2str(i)+' in progress...';
+        switchtolayout();
+        select("EME");
+        set("wavelength", wavelength_sweep(i));
+        
+        run;
+        emepropagate;
+
+        S=getresult("EME", "user s matrix");
+
+        ?S31(i)=abs(S(3,1))^2;
+        ?S41(i)=abs(S(4,1))^2;
+    }
+
+    filename = results_convergence + "Smatrix_vs_wavelengthsweep_tapers.txt";
+    write(filename,"wavelength sweep\tS31\tS41");
+    result = [wavelength_sweep,S31,S41];
+    write(filename,num2str(result));
+
+    ?'Sweep results are available for WAVELENGTH sweep' ;
+
+

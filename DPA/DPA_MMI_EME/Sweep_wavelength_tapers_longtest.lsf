@@ -1,0 +1,118 @@
+
+# ============================================================================
+# Sweeps wawelength (Geometry with tapers)
+#
+# Purpose:
+# This script performs convergence analysis of the EME simulation setup for
+# the MMI coupler WITH TAPERS
+#
+#
+# Notes:
+# - Power transmission is evaluated using:
+#       S31 = |S(3,1)|²
+#       S41 = |S(4,1)|²
+#
+# ============================================================================
+
+switchtolayout();
+deleteall();
+clear();
+
+results_convergence ="./Results/SweepLwg/";  #Folder to save results and data
+
+DefineGeometryTapers;  # MMI and WG are defined
+
+SetEMEtapers; # Create EME simulation
+
+# =============================
+
+SetPorts; # Create and set the Ports
+
+L_MMI_sweep = [100e-6]; # Defined by the results of rho
+
+lambda_sweep_min = 1260e-9;
+lambda_sweep_max = 1360e-9;
+
+n_points = 11;
+
+
+for(k=1:length(L_MMI_sweep)){
+    switchtolayout();
+
+     select('EME');
+    set("group spans",
+    [L_wg; L_taper; L_MMI_sweep(k); L_taper; L_wg]);
+    xspan_eme = (2*(L_wg + L_taper)+ L_MMI_sweep(k));
+    set("x min", -0.5*xspan_eme);
+    select('MMI');
+    set('x span', L_MMI_sweep(k));
+
+    select('Wg 1');
+    set('x', -0.5*(2*L_taper+L_wg + L_MMI_sweep(k)));
+
+    select( 'Taper1');
+    set('x', -0.5*(2* L_taper + L_MMI_sweep(k)));
+
+    select('Wg 2');
+    set('x', -0.5*(2*L_taper+L_wg + L_MMI_sweep(k)));
+
+    select( 'Taper2');
+    set('x', -0.5*(2*L_taper + L_MMI_sweep(k)));
+
+    select('Wg 3');
+    set('x', 0.5*(2*L_taper+L_wg + L_MMI_sweep(k)));
+
+    select( 'Taper3');
+    set('x', 0.5*L_MMI_sweep(k));
+
+    select('Wg 4');
+    set('x', 0.5*(2*L_taper+L_wg + L_MMI_sweep(k)));
+
+    select( 'Taper4');
+    set('x', 0.5*L_MMI_sweep(k));
+
+
+
+    ?'Initialization of WAVELENGTH sweep';
+    
+
+
+wavelength_sweep = linspace(
+    lambda_sweep_min,
+    lambda_sweep_max,
+    n_points
+);
+
+    S31 = zeros(n_points);
+    S41 = zeros(n_points);
+
+    for (i = 1:n_points){
+        ?("Iteration "+num2str(i)+" in progress...");
+        switchtolayout();
+        select("EME");
+        set("wavelength", wavelength_sweep(i));
+        
+        run;
+        emepropagate;
+
+        S=getresult("EME", "user s matrix");
+
+        ?S31(i)=abs(S(3,1))^2;
+        ?S41(i)=abs(S(4,1))^2;
+    }
+
+    filename = results_convergence +
+    "Smatrix_vs_wavelength_LMMI_" +
+    num2str(L_MMI_sweep(k)*1e6) +
+    "um.txt";    write(filename,"wavelength sweep\tS31\tS41");
+    result = [wavelength_sweep,S31,S41];
+    write(filename,num2str(result));
+
+    ?"Sweep results are available for WAVELENGTH sweep " + num2str(L_MMI_sweep(k));
+}
+
+
+
+
+
+

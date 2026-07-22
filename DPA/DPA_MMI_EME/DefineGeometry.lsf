@@ -1,0 +1,93 @@
+# Daryna Sych
+# ============================================================================
+# Geometry generation script for a 2×2 Multimode Interference (MMI) coupler
+#
+# The script:
+#   Switches the project to Layout mode.
+#   Defines optical and geometrical parameters
+#   Geometry is then ready to use for EME simulation
+
+# !All dimensions are specified in SI units (meters)!
+# ============================================================================
+
+switchtolayout(); 
+
+# INPUT PARAMETERS
+
+#refractive indeces
+n_Si = 3.478; # Cores
+n_SiO2 = 1.444; # Cladding
+
+W_MMI = 4.5e-6; # Width of MMI
+L_MMI_init = 24.5e-6; # Initailly calculated length of MMI (a)
+
+L_MMI_sweep = 24e-6;   # L MMI after parameter sweep in (b) 
+
+L_MMI = L_MMI_init; # ! Comment after the convergence analysis
+L_MMI = L_MMI_sweep; # ! Comment before the convergence analysis
+
+W_gap = W_MMI/3;
+H_wg = 220e-9; # Height of silicon cores (z-direction)
+
+L_wg = 10e-6; # Length of waveguide
+W_wg = 500e-9; # Width of waveguide
+
+lambda_m = 1550e-9; # Operating wavelength
+n_lambda_WG = "Si (Silicon) - Palik Copy 2";
+
+
+# Create structures
+
+# Add MMI
+addrect;
+set('name', 'MMI');
+set('x', 0);
+set('x span', L_MMI);
+set('y', 0);
+set('y span', W_MMI);
+set('z', 0);
+set('z span', H_wg);
+set('material' , n_lambda_WG);
+
+# Add WG 1
+addrect;
+set('name', 'Wg 1');
+set('x', -0.5*(L_wg + L_MMI));
+set('x span', L_wg);
+set('y', 0.5*W_gap);
+set('y span', W_wg);
+set('z', 0);
+set('z span', H_wg);
+set('material' , n_lambda_WG);
+# Add WG 2
+addrect;
+set('name', 'Wg 2');
+set('x', -0.5*(L_wg + L_MMI));
+set('x span', L_wg);
+set('y', -0.5*W_gap);
+set('y span', W_wg);
+set('z', 0);
+set('z span', H_wg);
+set('material' , n_lambda_WG);
+
+# Add WG 3
+addrect;
+set('name', 'Wg 3');
+set('x', 0.5*(L_wg + L_MMI));
+set('x span', L_wg);
+set('y', 0.5*W_gap);
+set('y span', W_wg);
+set('z', 0);
+set('z span', H_wg);
+set('material' , n_lambda_WG);
+
+# Add WG 4
+addrect;
+set('name', 'Wg 4');
+set('x', 0.5*(L_wg + L_MMI));
+set('x span', L_wg);
+set('y', -0.5*W_gap);
+set('y span', W_wg);
+set('z', 0);
+set('z span', H_wg);
+set('material' , n_lambda_WG);

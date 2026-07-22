@@ -1,0 +1,70 @@
+# Daryna Sych - 2765716
+# ==========================================================
+# Creates and configures EME simulation region
+# ! All units are in SI
+# ==========================================================
+
+# EME parameters
+
+dy_eme = 0.02e-6; # Results after the convergence test
+dz_eme = 0.02e-6; # Results after the convergence test
+
+xspan_eme = (2*L_wg + L_MMI);
+yspan_eme = 300*dy_eme; # 6 um Results after the convergence test
+zspan_eme = 175*dz_eme; # 3.5 um Results after the convergence test
+
+# Define number of modes used for analysis
+MMI_modes = 28;   # Results after the convergence test
+WG_modes = 10; 
+
+
+# Create EME simulation
+addeme;
+
+# General settings
+set("allow custom eigensolver settings",1);
+
+set("wavelength", lambda_m);
+
+set("x min", -0.5*xspan_eme);
+
+# Cell groups
+set("number of cell groups",3);
+
+set("group spans",
+    [L_wg; L_MMI; L_wg]);
+
+set("cells",
+    [1; 1; 1]);
+
+set("modes",
+    [WG_modes; MMI_modes; WG_modes]);
+
+set("display cells",1);
+
+# EME mesh
+
+set("define y mesh by","maximum mesh step");
+set("define z mesh by","maximum mesh step");
+
+set("dy",dy_eme);
+set("dz",dz_eme);
+
+# Boundary conditions
+Boundary_Conditions = 2;
+
+set("y min bc",Boundary_Conditions);
+set("y max bc",Boundary_Conditions);
+
+set("z min bc",Boundary_Conditions);
+set("z max bc",Boundary_Conditions);
+
+# Simulation span
+set("y",0);
+set("z",0);
+
+set("y span",yspan_eme);
+set("z span",zspan_eme);
+
+set("background material","SiO2 (Glass) - Palik Copy 2");
+

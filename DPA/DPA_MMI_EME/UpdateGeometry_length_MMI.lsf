@@ -1,0 +1,38 @@
+# Daryna Sych
+
+# =============================================
+# Helping script to update geometry for the sweep of both length and width of MMI
+# Update MMI
+select("MMI");
+set("x span",L_MMI);
+
+# Coordinates
+x_wg_left     = -0.5*(2*L_taper + L_wg + L_MMI);
+x_taper_left  = -0.5*(2*L_taper + L_MMI);
+
+x_wg_right    = 0.5*(2*L_taper + L_wg + L_MMI);
+x_taper_right = 0.5*L_MMI;
+
+select("Wg 1");
+set("x",x_wg_left);
+
+select("Wg 2");
+set("x",x_wg_left);
+
+select("Taper1");
+set("x",x_taper_left);
+
+select("Taper2");
+set("x",x_taper_left);
+
+select("Wg 3");
+set("x",x_wg_right);
+
+select("Wg 4");
+set("x",x_wg_right);
+
+select("Taper3");
+set("x",x_taper_right);
+
+select("Taper4");
+set("x",x_taper_right);

@@ -1,0 +1,36 @@
+# Daryna Sych
+# =======================================================
+# This file runs EME a simulation after the convergence test
+# TAPERS ARE INCLUDED IN THIS SIMULATIONS
+# =======================================================
+
+
+switchtolayout();
+deleteall();
+clear();
+
+results_convergence ="./Results_convergence/";  #Folder to save results and data
+
+DefineGeometryTapers;  # MMI and WG are defined
+wl_channel = 1291e-9;
+SetEMEtapers; # Create EME simulation
+# Change the EME simulation region according to sweep
+select('EME');
+set("wavelength", wl_channel);
+
+SetPorts; # Create and set the Ports
+?exist("EME::Ports::port_1");
+?exist("EME::Ports::port_2");
+?exist("EME::Ports::port_3");
+?exist("EME::Ports::port_4");
+# ADD MONITOR
+addemeprofile();
+set('x',0);
+set('x span', L_MMI + 2 * (L_wg + L_taper));
+
+set('y',0);
+set('y span', 6e-6);
+set('z',0);
+
+run;
+emepropagate;

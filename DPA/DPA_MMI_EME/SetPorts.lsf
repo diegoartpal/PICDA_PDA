@@ -1,0 +1,77 @@
+# Daryna Sych - 2765716
+# ==================================================================
+# EME Port Configuration
+#
+# Port configuration in Interconnect
+#
+#               INPUT SIDE                     OUTPUT SIDE
+#
+#            Port 2 (upper)  ───┐      ┌───  Port 4 (upper)
+#                               │ MMI  │
+#            Port 1 (lower)  ───┘      └───  Port 3 (lower)
+#   port_y_size:
+#       Defines the port size in the y-direction.
+#       The value is chosen large enough to contain the complete
+#       guided mode but small enough to avoid overlap with the
+#       neighboring port
+#
+#   port_z_size:
+#       Defines the port size in the vertical z direction
+#       The span includes the silicon core and sufficient cladding
+#       region (around wavelength)
+# ===================================================================
+
+port_y_size =  2.5e-6; # Not to allow two ports itersect each other
+port_z_size = H_wg + 2*lambda_m;
+port_offset = 0.5e-6;
+
+
+# set up ports 
+# select("EME");
+# addemeport();
+select('EME::Ports::port_1');
+set('port location' , 'left');
+set('use full simulation span' , 0);
+set('y', 0.5*W_gap);
+set('y span' , port_y_size);
+set('z',0);
+set('z span' , port_z_size);
+set('offset' , port_offset);
+set('mode selection' , 'fundamental mode');
+
+# set up ports 2
+# select("EME");
+# addemeport();
+select('EME::Ports::port_2');
+set('port location' , 'left');
+set('use full simulation span' , 0);
+set('y', -0.5*W_gap);
+set('y span' , port_y_size);
+set('z',0);
+set('z span' , port_z_size);
+set('offset' , port_offset);
+set('mode selection' , 'fundamental mode');
+
+# set up ports 3 
+addemeport();
+select('EME::Ports::port_3');
+set('port location' , 'right');
+set('use full simulation span' , 0);
+set('y', 0.5*W_gap);
+set('y span' , port_y_size);
+set('z',0);
+set('z span' , port_z_size);
+set('offset' , -port_offset);
+set('mode selection' , 'fundamental mode');
+
+
+addemeport();
+select('EME::Ports::port_4');
+set('port location' , 'right');
+set('use full simulation span' , 0);
+set('y', -0.5*W_gap);
+set('y span' , port_y_size);
+set('z',0);
+set('z span' , port_z_size);
+set('offset' , -port_offset);
+set('mode selection' , 'fundamental mode');

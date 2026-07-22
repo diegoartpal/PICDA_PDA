@@ -1,0 +1,158 @@
+# Daryna Sych
+# ============================================================================
+# Geometry generation script for a 2×2 Multimode Interference (MMI) coupler
+# implemented on a Silicon-on-Insulator (SOI) platform.
+# TAPERS ARE INCLUDED  IN SIMULATION
+# The script:
+#   Switches the project to Layout mode.
+#   Defines optical and geometrical parameters
+#   Geometry is then ready to use for EME simulation
+
+# !All dimensions are specified in SI units (meters)!
+# ============================================================================
+
+switchtolayout();
+
+# INPUT PARAMETERS
+
+W_MMI = 4.5e-6; # Width of MMI
+L_MMI_init = 24.5e-6; # Initailly calculated length of MMI (a)
+L_MMI_sweep = 31e-6;   # L MMI after parameter sweep in (b) 
+
+L_MMI = L_MMI_init; # ! Comment after the convergence analysis
+L_MMI = L_MMI_sweep; # ! Comment before the convergence analysis
+
+
+W_gap = W_MMI/3;
+H_wg = 220e-9; # Height of silicon cores (z-direction)
+
+# Taper : length and width
+L_taper = 10e-6; # Length of taper
+W_taper = 1500e-9; # Width of taper
+
+# Waveguide : length and width
+L_wg = 10e-6; # Length of waveguide
+W_wg = 420e-9; # Width of waveguide
+
+
+# Define waveguide material
+n_lambda_WG = "Si (Silicon) - Palik Copy 2";
+# Create structures
+
+
+# Add MMI
+addrect;
+set('name', 'MMI');
+set('x', 0);
+set('x span', L_MMI);
+set('y', 0);
+set('y span', W_MMI);
+set('z', 0);
+set('z span', H_wg);
+set('material' , n_lambda_WG);
+
+# Add WG 1
+addrect;
+set('name', 'Wg 1');
+set('x', -0.5*(2*L_taper+L_wg + L_MMI));
+set('x span', L_wg);
+set('y', 0.5*W_gap);
+set('y span', W_wg);
+set('z', 0);
+set('z span', H_wg);
+set('material' , n_lambda_WG);
+
+# Add taper1
+addpoly();
+set('name' , 'Taper1');
+set('material' , n_lambda_WG);
+vert = [0,-W_wg/2;
+0,W_wg/2; 
+L_taper,W_taper/2;
+L_taper,-W_taper/2];
+set('x', -0.5*(2* L_taper + L_MMI));
+set('y',0.5*W_gap);
+set('vertices',vert);
+set('z',0);
+set('z span',H_wg);
+
+# Add WG 2
+addrect;
+set('name', 'Wg 2');
+set('x', -0.5*(2*L_taper+L_wg + L_MMI));
+set('x span', L_wg);
+set('y', -0.5*W_gap);
+set('y span', W_wg);
+set('z', 0);
+set('z span', H_wg);
+set('material' , n_lambda_WG);
+
+# Add taper2
+addpoly();
+set('name' , 'Taper2');
+set('material' , n_lambda_WG);
+vert = [0,-W_wg/2;
+0,W_wg/2; 
+L_taper,W_taper/2;
+L_taper,-W_taper/2];
+
+set('x', -0.5*(2*L_taper + L_MMI));
+set('y',-0.5*W_gap);
+set('vertices',vert);
+set('z',0);
+set('z span',H_wg);
+
+# Add WG 3
+addrect;
+set('name', 'Wg 3');
+set('x', 0.5*(2*L_taper+L_wg + L_MMI));
+set('x span', L_wg);
+set('y', 0.5*W_gap);
+set('y span', W_wg);
+set('z', 0);
+set('z span', H_wg);
+set('material' , n_lambda_WG);
+
+
+# Add tapers
+addpoly();
+set('name' , 'Taper3');
+set('material' , n_lambda_WG);
+
+vert = [0,-W_taper/2;
+0,W_taper/2; 
+L_taper,W_wg/2;
+L_taper,-W_wg/2];
+set('x', 0.5*L_MMI);
+set('y',0.5*W_gap);
+set('vertices',vert);
+set('z',0);
+set('z span',H_wg);
+
+# Add WG 4
+addrect;
+set('name', 'Wg 4');
+set('x', 0.5*(2*L_taper+L_wg + L_MMI));
+set('x span', L_wg);
+set('y', -0.5*W_gap);
+set('y span', W_wg);
+set('z', 0);
+set('z span', H_wg);
+set('material' , n_lambda_WG);
+
+# Add tapers
+addpoly();
+set('name' , 'Taper4');
+set('material' , n_lambda_WG);
+vert = [0,-W_taper/2;
+0,W_taper/2; 
+L_taper,W_wg/2;
+L_taper,-W_wg/2];
+set('x', 0.5*L_MMI);
+set('y',-0.5*W_gap);
+set('vertices',vert);
+set('z',0);
+set('z span',H_wg);
+
+
+

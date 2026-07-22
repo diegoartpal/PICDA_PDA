@@ -1,0 +1,92 @@
+# Daryna Sych
+# ============================================================================
+# Here we sweep the length of the MMI
+# We can choose for which wavelength to do it (ideally to write for all 4)
+# The geometry WITH TAPERS
+# Notes:
+# Power transmission is evaluated using:
+#       S31 = |S(3,1)|²
+#       S41 = |S(4,1)|²
+#
+# ============================================================================
+
+switchtolayout();
+deleteall();
+clear();
+
+results_convergence ="./Results/Sweep_length_MMI/";  #Folder to save results and data
+
+# Wavelength channels
+wl_channel = [1261, 1291, 1311, 1331]*1e-9;
+
+# Create geometry
+DefineGeometryTapers;  
+
+# Create the region of the simulation with the default settings
+SetEMEtapers; # Create EME simulation
+
+# Define Ports
+SetPorts; # Create and set the Ports
+
+
+# ===================
+# DEFINE LIMITS OF CONVERGENCE TEST
+# ===================
+
+# ******* MMI Length ******
+length_MMI_start = 25e-6;
+length_MMI_end = 35e-6;
+numpoints_Lmmi = 11;
+L_MMI_sweep = linspace(length_MMI_start, length_MMI_end, numpoints_Lmmi);
+
+for (k = 1:length(wl_channel)){
+    ?'Initialization of LENGTH MMI sweep for lambda=' + num2str(wl_channel(k));
+    
+    # Prepare to write the results
+    S31 = zeros(numpoints_Lmmi);
+    S41 = zeros(numpoints_Lmmi);
+    
+    # L MMi sweep
+    for (i = 1 : numpoints_Lmmi){
+        ?'L_mmi=' + num2str(L_MMI_sweep(i));
+
+        switchtolayout();
+        # Change the EME simulation region according to sweep
+        select('EME');
+        set("group spans", [L_wg; L_taper; L_MMI_sweep(i); L_taper; L_wg]);
+        xspan_eme = (2*(L_wg + L_taper)+ L_MMI_sweep(i));
+        set("x min", -0.5*xspan_eme);
+        set("wavelength", wl_channel(k));
+
+
+        # Change the geometry of the system according to new L MMI
+        L_MMI = L_MMI_sweep(i);
+        UpdateGeometry_length_MMI;
+
+        run;
+        emepropagate;
+
+        S=getresult("EME", "user s matrix");
+
+        ?S31(i)=abs(S(3,1))^2;
+        ?S41(i)=abs(S(4,1))^2;
+
+
+
+    }
+
+    filename = results_convergence +
+        "Smatrix_vs_Lmmi_" +
+        num2str(wl_channel(k)) + "um.txt";    
+        
+    write(filename,"Length MMI\tS31\tS41");
+    result = [L_MMI_sweep,S31,S41];
+    write(filename,num2str(result));
+
+    ?"Sweep results are available for WAVELENGTH sweep " + num2str(wl_channel(k));
+
+
+
+    ? 'Sweep results are available for number of MMI length' ;
+}
+
