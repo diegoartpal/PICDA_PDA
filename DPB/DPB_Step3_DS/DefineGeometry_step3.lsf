@@ -10,7 +10,7 @@ wd_height = 140e-9;
 pad_width = 5.85e-6;
 pad_height = 150e-9;
 
-struct_length = 3.5e-3;
+struct_length = 2e-6;
 
 Si_dopped = 'Si Doped 1';
 
@@ -29,7 +29,7 @@ set('material' , Si_dopped);
 addrect;
 set('name', 'Si pad');
 set('x', 0);
-set('x span', pad_width);
+set('x span', pad_width+0.15e-6);
 set('y', 0);
 set('y span', struct_length);
 set('z', 0.5*pad_height);

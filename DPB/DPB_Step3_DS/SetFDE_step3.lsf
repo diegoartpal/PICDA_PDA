@@ -1,8 +1,7 @@
 addfde();
 
-xspan_fde = 8e-6;
-yspan_fde = 1e-6;
-zspan_fde = 0.5e-6;
+xspan_fde = 5.85e-6;
+zspan_fde = 2e-6;
 n_SiO2 = 'SiO2 (Glass) - Palik';
 set('solver type' , '2D Y normal');
 
@@ -19,15 +18,15 @@ set('define z mesh by', 'number of mesh cells');
 set('mesh cells x', 100);
 set('mesh cells z', 100);
 
-set('x min bc', 'PML');
-set('x max bc', 'PML');
-set('z min bc', 'PML');
-set('z max bc', 'PML');
+set('x min bc', 'Metal');
+set('x max bc', 'Metal');
+set('z min bc', 'Metal');
+set('z max bc', 'Metal');
 
 set('index', n_SiO2);
 
 setanalysis('wavelength',1.55e-6);
-setanalysis('number of trial modes',10);
+setanalysis('number of trial modes',5);
 setanalysis('search','near n');
 setanalysis('use max index',true);
 setanalysis('calculate group index',true);
