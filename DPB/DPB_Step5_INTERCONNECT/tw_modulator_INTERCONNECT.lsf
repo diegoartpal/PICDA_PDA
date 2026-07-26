@@ -1,0 +1,46 @@
+#######################################################################
+############# Load and set optical waveguide parameters ###############
+#######################################################################
+clear;
+matlabload('tw_modulator_optical_data');
+
+#optical waveguides WGD_1 and WGD_2
+freq = c/1.55e-6; # Hz
+setnamed('WGD_1','frequency',freq);
+setnamed('WGD_1','length',5e-3); #m
+setnamed('WGD_1','loss 1',loss(2,2)); #dB/m for zero bias
+setnamed('WGD_1','effective index 1',neff(2,2)); #real component at zero bias
+setnamed('WGD_1','group index 1',ng(2,2)); #real component at zero bias
+setnamed('WGD_2','frequency',freq);
+setnamed('WGD_2','length',5.1e-3);
+setnamed('WGD_2','loss 1',loss(2,2));
+setnamed('WGD_2','effective index 1',neff(2,2));
+setnamed('WGD_2','group index 1',ng(2,2));
+
+#optical modulators OM_1 and OM_2
+freq = c/1.55e-6; # Hz
+setnamed('OM_1','frequency',freq);
+setnamed('OM_1','length',4.5e-3); # effective phase change length in m
+setnamed('OM_1','measurement',dneff); #complex number vs voltage
+setnamed('OM_2','frequency',freq);
+setnamed('OM_2','length',4.5e-3); #m
+setnamed('OM_2','measurement',dneff);
+
+#travelling wave electrode
+setnamed('TW_1','optical index',ng(2,2));
+
+#######################################################################
+############# Load and set RF transmission line parameters ############
+#######################################################################
+clear;
+matlabload('tw_modulator_RF_data');
+matlabload('tw_modulator_dc_C');
+Rslab_total = str2num(read('tw_modulator_Rslab_tot.dat'));
+
+#travelling wave electrode
+setnamed('TW_1','length',5.e-3);
+setnamed('TW_1','loss table',loss);
+setnamed('TW_1','characteristic impedance table',Z0);
+setnamed('TW_1','junction capacitance table',Cdc);
+setnamed('TW_1','junction resistance',Rslab_total); #Ohm*m
+setnamed('TW_1','microwave index table',ng); #only real component
