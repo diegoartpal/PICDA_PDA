@@ -1,0 +1,57 @@
+#######################################################################
+############# Load and set optical waveguide parameters ###############
+#######################################################################
+clear;
+matlabload('tw_modulator_optical_data_dpb');
+
+#optical waveguides WGD_1 and WGD_2
+freq = c/1.55e-6; # Hz
+setnamed('WGD_1','frequency',freq);
+setnamed('WGD_1','length',5e-3); #m
+setnamed('WGD_1','loss 1',loss(2,1)); #dB/m for zero bias
+setnamed('WGD_1','effective index 1',neff(2,1)); #real component at zero bias
+setnamed('WGD_1','group index 1',ng(2,1)); #real component at zero bias
+setnamed('WGD_2','frequency',freq);
+setnamed('WGD_2','length',5.1e-3);
+setnamed('WGD_2','loss 1',loss(2,1));
+setnamed('WGD_2','effective index 1',neff(2,1));
+setnamed('WGD_2','group index 1',ng(2,1));
+
+#optical modulators OM_1 and OM_2
+freq = c/1.55e-6; # Hz
+setnamed('OM_1','frequency',freq);
+setnamed('OM_1','length',3.5e-3); # effective phase change length in m
+setnamed('OM_1','measurement',dneff); #complex number vs voltage
+setnamed('OM_2','frequency',freq);
+setnamed('OM_2','length',3.5e-3); #m
+setnamed('OM_2','measurement',dneff);
+
+#travelling wave electrode
+setnamed('TW_1','optical index',ng(2,1));
+
+#######################################################################
+############# Load and set RF transmission line parameters ############
+#######################################################################
+clear;
+#matlabload('tw_modulator_RF_data');
+#matlabload('tw_modulator_dc_C_dpb');
+# Read junction capacitance table
+Cdc = readdata("tw_modulator_DC_C_results.dat");
+
+Rslab_total = str2num(read('tw_modulator_Rslab_tot.dat'));
+
+# Read RF transmission line data from  .dat file
+data = readdata("tw_modulator_RF_data.dat");
+
+# Construct the tables required by the Traveling Wave Electrode
+loss = data(:,1:2);      # [Frequency(Hz), RF loss]
+ng   = data(:,3:4);      # [Frequency(Hz), RF group index]
+Z0   = data(:,5:7);      # [Frequency(Hz), Re(Z0), Im(Z0)]
+
+#travelling wave electrode
+setnamed('TW_1','length',3.5e-3);
+setnamed('TW_1','loss table',loss);
+setnamed('TW_1','characteristic impedance table',Z0);
+setnamed('TW_1','junction capacitance table',Cdc);
+setnamed('TW_1','junction resistance',Rslab_total); #Ohm*m
+setnamed('TW_1','microwave index table',ng); #only real component
