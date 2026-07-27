@@ -4,8 +4,7 @@
 
 # Setup simulation bias
 
-vmin = 0; vmax = 4; N = 5;
-
+vmin = 0; vmax = 4; N = 9;
 dv = 0.025;
 vdv = matrix(2*N,1);
 vdv(1:2:(2*N)) = linspace(vmin,vmax,N);
