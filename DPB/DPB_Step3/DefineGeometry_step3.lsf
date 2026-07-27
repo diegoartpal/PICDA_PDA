@@ -1,0 +1,37 @@
+# Define the geometry
+# Create waveguide (Si)
+# Create Si Pad
+# All dimentions are in Si
+
+# Set geometrical parameters
+wg_width = 470e-9;
+wd_height = 140e-9;
+
+pad_width = 5.85e-6;
+pad_height = 150e-9;
+
+struct_length = 3.5e-3;
+
+Si_dopped = 'Si Doped 1';
+
+# Create a waveguide
+addrect;
+set('name', 'Si wg');
+set('x', 0);
+set('x span', wg_width);
+set('y', 0);
+set('y span', struct_length);
+set('z', pad_height + 0.5*wd_height);
+set('z span', wd_height);
+set('material' , Si_dopped);
+
+# Create a Si pad
+addrect;
+set('name', 'Si pad');
+set('x', 0);
+set('x span', pad_width);
+set('y', 0);
+set('y span', struct_length);
+set('z', 0.5*pad_height);
+set('z span', pad_height);
+set('material' , Si_dopped);

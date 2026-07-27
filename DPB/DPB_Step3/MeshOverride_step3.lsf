@@ -1,0 +1,20 @@
+addmesh;
+
+# Position
+set("x", 0);
+set("y", 0);
+set("z", 0.22e-6);
+
+# Size
+set("x span", 470e-9);
+set("y span", 100e-9);
+set("z span", 140e-9);
+
+# Override mesh sizes
+set("override x mesh", 1);
+set("override y mesh", 1);
+set("override z mesh", 1);
+
+set("dx", 1e-9);
+set("dy", 1e-9);
+set("dz", 1e-9);

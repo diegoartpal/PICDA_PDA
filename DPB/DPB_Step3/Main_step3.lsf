@@ -1,0 +1,63 @@
+switchtolayout();
+deleteall();
+clear();
+
+# Add charge distribution 
+addgridattribute("np density");
+set("name","np density");
+select("np density");
+importdataset("tw_modulator_DC_results_21points.mat");
+
+DefineGeometry_step3;
+select('Si wg');
+set('grid attribute name', 'np density');
+
+select('Si pad');
+set('grid attribute name', 'np density');
+
+SetFDE_step3;
+MeshOverride_step3;
+
+
+switchtolayout();
+V_index =21;
+V = linspace(0,4,V_index);
+
+neff = matrix(V_index,1);
+ng    = matrix(V_index,1);
+loss  = matrix(V_index,1);
+
+
+for(i=1; i<=V_index; i=i+1){
+    switchtolayout;
+    setnamed('np density','V_cathode_index',i);
+    ?'V='+num2str(getnamed('np density','V_cathode'));
+    findmodes;
+    neff(i) = getdata('mode1','neff');
+    ng(i) = getdata('mode1','ng');
+    loss(i) = getdata('mode1','loss');
+
+}
+
+?'Voltage sweep is finished';
+dneff = neff - neff(1); # relative change in index wrt. zero bias
+
+L = 3.5e-3; # set the length of the modulator arm to plot phase shift
+la0 = getnamed("MODE","wavelength"); # central wavelength
+rel_phase = 2*pi*real(dneff)/la0*L; # phase change
+        
+
+#Visualize some quantities of interest
+plot(V,real(neff),"Voltage (V)","effective index");
+plot(V,loss,"Voltage (V)","Loss");
+plot(V,real(ng),"Voltage (V)","group index");
+plot(V,rel_phase,"Voltage (V)","Phase shift wrt. zero bias (rad.)");
+
+
+
+# Save to files for import to INTERCONNECT
+neff = [V,real(neff),imag(neff)];
+dneff = [V,real(dneff),imag(dneff)];
+loss = [V,loss];
+ng = [V,real(ng),imag(ng)];
+matlabsave("tw_modulator_optical_data",neff,dneff,loss,ng);
