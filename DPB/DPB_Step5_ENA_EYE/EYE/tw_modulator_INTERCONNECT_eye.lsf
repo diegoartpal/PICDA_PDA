@@ -1,0 +1,75 @@
+#######################################################################
+############# Load and set optical waveguide parameters ###############
+#######################################################################
+switchtolayout;
+clear;
+matlabload('tw_modulator_optical_data');
+
+freq0 = c/1.55e-6;
+
+# WGD_1 / WGD_2 - V=0 is row 1, column 2 (correct indexing, no transpose)
+setnamed('WGD_1','frequency',freq0);
+setnamed('WGD_1','length',3.5e-3);
+setnamed('WGD_1','loss 1', 400);
+setnamed('WGD_1','effective index 1', neff(1,2));
+setnamed('WGD_1','group index 1', ng(1,2));
+
+setnamed('WGD_2','frequency',freq0);
+setnamed('WGD_2','length',3.6e-3);
+setnamed('WGD_2','loss 1', 400);
+setnamed('WGD_2','effective index 1', neff(1,2));
+setnamed('WGD_2','group index 1', ng(1,2));
+
+# OM_1 / OM_2 - no transpose needed, matlabload already gives (21,3)
+setnamed('OM_1','frequency',freq0);
+setnamed('OM_1','length',3.5e-3);
+setnamed('OM_1','measurement', dneff);
+
+setnamed('OM_2','frequency',freq0);
+setnamed('OM_2','length',3.5e-3);
+setnamed('OM_2','measurement', dneff);
+
+setnamed('TW_1','optical index', ng(1,2));
+setnamed('TW_2','optical index', ng(1,2));
+
+
+#######################################################################
+############# Load and set RF transmission line parameters ############
+#######################################################################
+
+Z0 = readdata('Z0_vs_freq.dat');
+loss_rf = readdata('loss_vs_freq.dat');
+ng_RF = readdata('ng_vs_freq.dat');
+C_ = readdata('tw_modulator_DC_C_results.dat');
+
+setnamed('TW_1','length',3.5e-3);
+setnamed('TW_1','loss table',loss_rf);
+setnamed('TW_1','characteristic impedance table',Z0);
+setnamed('TW_1','junction resistance', 0.0023235);
+setnamed('TW_1','microwave index table',ng_RF);
+setnamed('TW_1','terminating resistance',25);
+setnamed('TW_1','junction capacitance table',C_);
+
+
+setnamed('TW_2','length',3.5e-3);
+setnamed('TW_2','loss table',loss_rf);
+setnamed('TW_2','characteristic impedance table',Z0);
+setnamed('TW_2','junction resistance', 0.0023235);
+setnamed('TW_2','microwave index table',ng_RF);
+setnamed('TW_2','terminating resistance',25);
+setnamed('TW_2','junction capacitance table',C_);
+
+
+
+#######################################################################
+############# Data rate and bias ########################################
+#######################################################################
+
+setnamed('::Root Element','bitrate',28e9);
+
+setnamed('NRZ_1','bias', 0);
+setnamed('NRZ_1','amplitude', 1.8);
+setnamed('NRZ_2','bias', 0);
+setnamed('NRZ_2','amplitude', 1.8);
+
+#run;
